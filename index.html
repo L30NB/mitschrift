@@ -1,0 +1,1357 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mitschrift</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: workspace app. Library sidebar on the left (drawer on phones), a document column on the right;
+   the recorder is a sticky bar on desktop and a bottom dock on phones. Red is reserved for recording. */
+:root {
+  --bg: #f6f6f4; --surface: #ffffff; --surface-2: #f0f0ed; --line: #e4e3df; --line-2: #d6d5d0;
+  --ink: #17181b; --muted: #676a72; --faint: #a1a3a9; --on-ink: #ffffff;
+  --rec: #e5484d; --rec-soft: rgba(229, 72, 77, .14);
+  --hl: #fbe7bd; --hl-line: #e9a23b; --hl-ink: #17181b;
+  --note: #eaf0fd; --note-line: #3a6fe0; --note-ink: #23417f;
+  --ok: #2d8a5f; --warn: #b4581c;
+  --shadow: 0 1px 2px rgba(20, 22, 28, .05), 0 8px 24px -12px rgba(20, 22, 28, .18);
+  --f-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "Geist Mono", ui-monospace, Menlo, Consolas, monospace;
+  --side: 272px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #0e0f11; --surface: #15161a; --surface-2: #1c1e22; --line: #26282d; --line-2: #33363c;
+  --ink: #ececee; --muted: #9b9ea6; --faint: #5f626a; --on-ink: #0e0f11;
+  --rec: #ff6166; --rec-soft: rgba(255, 97, 102, .16);
+  --hl: rgba(233, 162, 59, .24); --hl-line: #e9a23b; --hl-ink: #f6efe2;
+  --note: rgba(90, 140, 255, .12); --note-line: #6f9bff; --note-ink: #b9cdff;
+  --ok: #5cc596; --warn: #f0a46b;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 32px -14px rgba(0, 0, 0, .6);
+  color-scheme: dark } }
+
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+html, body { margin: 0; height: 100% }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--f-sans); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility }
+button, input, select, textarea { font: inherit; color: inherit }
+button { cursor: pointer }
+:focus-visible { outline: 2px solid var(--note-line); outline-offset: 2px; border-radius: 6px }
+svg { width: 18px; height: 18px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums }
+.label { font: 500 11px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 7px 12px; font: 500 13.5px/1.2 var(--f-sans); white-space: nowrap }
+.btn:hover { background: var(--surface-2) }
+.btn.primary { background: var(--ink); color: var(--on-ink); border-color: var(--ink) }
+.btn.primary:hover { opacity: .9 }
+.btn.ghost { border-color: transparent; background: transparent }
+.btn.ghost:hover { background: var(--surface-2) }
+.btn.danger { color: var(--rec) }
+.btn:disabled { opacity: .45; cursor: default }
+.icon-btn { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; border: 0; background: transparent; color: var(--muted) }
+.icon-btn:hover { background: var(--surface-2); color: var(--ink) }
+.seg { display: inline-flex; padding: 2px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--line) }
+.seg button { border: 0; background: transparent; color: var(--muted); padding: 5px 10px; border-radius: 6px; font: 500 12.5px/1.2 var(--f-sans) }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08) }
+select.btn { padding-right: 8px }
+
+/* ---------- shell ---------- */
+.shell { display: grid; grid-template-columns: var(--side) minmax(0, 1fr); min-height: 100% }
+.sidebar { border-right: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; height: 100vh; position: sticky; top: 0;
+  padding: max(16px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)) }
+.brand { display: flex; align-items: center; gap: 10px; padding: 4px 6px 16px; font: 600 16px/1 var(--f-sans); letter-spacing: -.01em }
+.logo { width: 26px; height: 26px; border-radius: 7px; background: var(--ink); display: grid; place-items: center }
+.logo i { width: 9px; height: 9px; border-radius: 50%; background: var(--rec) }
+.side-new { width: 100%; justify-content: center; margin-bottom: 14px }
+.side-label { padding: 0 8px 8px }
+.lib { flex: 1; overflow-y: auto; display: grid; align-content: start; gap: 2px; margin: 0 -4px; padding: 0 4px }
+.lib-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; border-radius: 8px }
+.lib-item:hover, .lib-item.cur { background: var(--surface-2) }
+.lib-item .open { all: unset; cursor: pointer; padding: 8px 4px 8px 10px; min-width: 0; display: grid; gap: 1px }
+.lib-item .open:focus-visible { outline: 2px solid var(--note-line); border-radius: 8px }
+.lib-item b { font-weight: 500; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.lib-item small { color: var(--muted); font-size: 12px }
+.lib-item .del { opacity: 0; margin-right: 4px }
+.lib-item:hover .del, .lib-item .del:focus-visible { opacity: 1 }
+.lib-item .confirm { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 4px 10px 10px; font-size: 13px; color: var(--muted) }
+.lib-item .confirm span { flex-basis: 100% }
+.side-foot { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; display: grid; gap: 2px }
+.side-foot .btn { justify-content: flex-start; width: 100% }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); margin-left: auto }
+.status-dot.on { background: var(--ok) }
+
+.topbar { display: none }
+.backdrop { display: none }
+
+main { min-width: 0; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)) }
+.page { max-width: 820px; margin: 0 auto; padding-block: 28px 64px }
+
+/* lecture header */
+.head { display: grid; gap: 6px; margin-bottom: 18px }
+#title { width: 100%; border: 0; background: transparent; padding: 2px 0; font: 650 28px/1.2 var(--f-sans); letter-spacing: -.025em; border-radius: 6px }
+#title:focus { outline: none; box-shadow: 0 2px 0 var(--line-2) }
+.meta { color: var(--muted); font-size: 13.5px; display: flex; flex-wrap: wrap; gap: 4px 14px }
+
+/* recorder */
+.recorder { position: sticky; top: max(12px, env(safe-area-inset-top)); z-index: 10; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; box-shadow: var(--shadow) }
+.recbtn { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--rec); display: grid; place-items: center; flex: none; transition: transform .12s }
+.recbtn:active { transform: scale(.94) }
+.recbtn i { width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: border-radius .2s }
+.on .recbtn i { border-radius: 3px }
+.on .recbtn { box-shadow: 0 0 0 5px var(--rec-soft) }
+.rec-time { display: grid; gap: 1px; min-width: 74px }
+.rec-time .mono { font-size: 19px; font-weight: 500; letter-spacing: -.02em }
+.rec-state { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px }
+.on .rec-state { color: var(--rec) }
+.on .rec-state::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--rec); animation: blink 1.2s infinite }
+@keyframes blink { 50% { opacity: .25 } }
+.wave { display: flex; align-items: center; gap: 2px; height: 28px; flex: 1; min-width: 60px; overflow: hidden; justify-content: center }
+.wave span { width: 2px; height: 2px; border-radius: 2px; background: var(--line-2); transition: height .12s; flex: none }
+.on .wave span { background: var(--rec) }
+.rec-right { display: flex; align-items: center; gap: 8px; margin-left: auto }
+
+/* tabs */
+.tabs { display: flex; gap: 22px; border-bottom: 1px solid var(--line); margin: 22px 0 22px }
+.tabs button { border: 0; background: none; padding: 10px 0; margin-bottom: -1px; border-bottom: 2px solid transparent; color: var(--muted); font: 500 14px var(--f-sans); display: inline-flex; gap: 6px; align-items: center }
+.tabs button[aria-selected="true"] { color: var(--ink); border-color: var(--ink) }
+.tabs .n { font: 12px var(--f-mono); color: var(--faint) }
+
+/* transcript document */
+.doc { font-size: 17px; line-height: 1.75; max-width: 68ch }
+.doc p { margin: 0 0 1em }
+.ln { border-radius: 4px; padding: 1px 0; cursor: text; transition: background .15s }
+.ln:hover { background: var(--surface-2) }
+.ln.hl { background: var(--hl); color: var(--hl-ink); box-shadow: inset 0 -2px 0 var(--hl-line); padding: 1px 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone }
+.ln.editing { background: var(--surface); outline: 2px solid var(--note-line); outline-offset: 1px; padding: 1px 3px; cursor: text }
+.note { margin: 0 0 1em; padding: 10px 14px; border-radius: 10px; background: var(--note); color: var(--note-ink); border-left: 3px solid var(--note-line); font-size: 15.5px; line-height: 1.6 }
+.note .label { color: var(--note-line); display: block; margin-bottom: 4px }
+.note .ln:hover { background: transparent }
+#interim { color: var(--faint); font-size: 17px; line-height: 1.75; min-height: 1.75em; max-width: 68ch }
+.empty { border: 1px dashed var(--line-2); border-radius: 14px; padding: 36px 20px; text-align: center; color: var(--muted); display: grid; gap: 6px; justify-items: center }
+.empty b { color: var(--ink); font-weight: 600; font-size: 16px }
+.addnote { display: flex; gap: 8px; margin-top: 18px; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface) }
+.addnote input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 6px 8px; outline: none }
+.hint { color: var(--faint); font-size: 12.5px; margin-top: 14px }
+
+/* notes view */
+.notes { display: grid; gap: 18px }
+.notes-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px }
+.card h3 { margin: 0; font: 600 15px/1.3 var(--f-sans); display: flex; align-items: center; gap: 8px }
+.card h3 .n { font: 12px var(--f-mono); color: var(--faint); font-weight: 400 }
+.card ul { margin: 12px 0 0; padding-left: 18px; display: grid; gap: 6px }
+.card .none { color: var(--faint); font-size: 14px; margin: 10px 0 0 }
+.card.hl li::marker { color: var(--hl-line) }
+.card.todo li::marker { color: var(--rec) }
+.card.own li { color: var(--note-ink) }
+.ai { padding: 0; overflow: hidden }
+.ai-head { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--line) }
+.ai-head p { margin: 2px 0 0; color: var(--muted); font-size: 13px }
+.spark { width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; background: var(--surface-2); color: var(--ink) }
+.ai-body { padding: 18px 20px; min-height: 80px }
+.ai-body.placeholder { color: var(--muted); font-size: 14px }
+.ai-foot { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; padding: 10px 14px 12px 20px; border-top: 1px solid var(--line); background: var(--surface-2) }
+.ai-foot .status { font-size: 12.5px; color: var(--muted); margin-right: auto }
+.ai-foot .status.err { color: var(--rec) }
+.thinking { display: inline-flex; gap: 8px; align-items: center; color: var(--muted) }
+.thinking i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line-2); border-top-color: var(--ink); animation: spin .8s linear infinite }
+@keyframes spin { to { transform: rotate(360deg) } }
+.md { font-size: 15px; line-height: 1.65 }
+.md h2, .md h3, .md h4 { font: 600 16px/1.35 var(--f-sans); margin: 1.2em 0 .4em; letter-spacing: -.01em }
+.md > :first-child { margin-top: 0 }
+.md p { margin: 0 0 .7em }
+.md ul, .md ol { margin: 0 0 .8em; padding-left: 20px }
+.md li { margin: 0 0 .25em }
+.md code { font: 13px var(--f-mono); background: var(--surface-2); padding: 1px 5px; border-radius: 4px }
+.md strong { font-weight: 600 }
+textarea.edit-md { width: 100%; min-height: 320px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--bg); padding: 12px; font: 13.5px/1.6 var(--f-mono); resize: vertical }
+
+/* settings dialog */
+dialog { border: 1px solid var(--line); border-radius: 16px; padding: 0; width: min(560px, calc(100vw - 24px)); max-height: calc(100vh - 40px); background: var(--surface); color: var(--ink); box-shadow: 0 30px 80px -20px rgba(0,0,0,.45) }
+dialog::backdrop { background: rgba(10, 12, 16, .45); backdrop-filter: blur(2px) }
+.dlg-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); z-index: 1 }
+.dlg-head h2 { margin: 0; font: 600 17px var(--f-sans) }
+.dlg-body { padding: 6px 18px 18px; display: grid }
+.set { display: grid; gap: 10px; padding: 16px 0; border-bottom: 1px solid var(--line) }
+.set:last-child { border-bottom: 0 }
+.set .seg { justify-self: start }
+.set h3 { margin: 0; font: 600 14.5px var(--f-sans); display: flex; align-items: center; gap: 8px }
+.set p { margin: 0; color: var(--muted); font-size: 13.5px }
+.set a { color: var(--note-line) }
+.field { display: flex; gap: 8px; flex-wrap: wrap }
+.field input { flex: 1 1 220px; min-width: 0; border: 1px solid var(--line-2); border-radius: 8px; background: var(--bg); padding: 8px 10px; font: 13.5px var(--f-mono) }
+.set textarea { width: 100%; min-height: 150px; border: 1px solid var(--line-2); border-radius: 8px; background: var(--bg); padding: 10px; font: 13.5px/1.6 var(--f-mono); resize: vertical }
+.pill { font: 500 11.5px/1 var(--f-sans); padding: 4px 8px; border-radius: 999px; background: var(--surface-2); color: var(--muted) }
+.pill.ok { color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent) }
+.pill.err { color: var(--rec); background: var(--rec-soft) }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px }
+.check input { margin-top: 3px; accent-color: var(--ink) }
+.learned { font-size: 13px; color: var(--muted) }
+
+.toast { position: fixed; left: 0; right: 0; margin: 0 auto; width: fit-content; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateY(16px); opacity: 0; pointer-events: none; z-index: 60;
+  background: var(--ink); color: var(--on-ink); padding: 10px 12px 10px 16px; border-radius: 10px; font-size: 13.5px; line-height: 1.4; max-width: min(calc(100vw - 32px), 560px);
+  display: flex; gap: 12px; align-items: center; transition: .2s; box-shadow: var(--shadow) }
+.toast.show { opacity: 1; transform: none; pointer-events: auto }
+.toast.err { background: var(--rec); color: #fff }
+.toast button { border: 0; background: rgba(255,255,255,.16); color: inherit; border-radius: 6px; padding: 5px 9px; font: 600 12.5px var(--f-sans) }
+.toast button[hidden] { display: none }
+
+/* ---------- phones ---------- */
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr) }
+  .sidebar { position: fixed; inset: 0 auto 0 0; width: min(86vw, 320px); z-index: 50; transform: translateX(-105%); transition: transform .22s; box-shadow: var(--shadow) }
+  .sidebar.open { transform: none }
+  .backdrop { display: block; position: fixed; inset: 0; z-index: 45; background: rgba(10,12,16,.4); opacity: 0; pointer-events: none; transition: opacity .2s }
+  .backdrop.show { opacity: 1; pointer-events: auto }
+  .topbar { display: flex; align-items: center; gap: 6px; position: sticky; top: 0; z-index: 20; background: var(--bg);
+    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 8px max(8px, env(safe-area-inset-left)); border-bottom: 1px solid var(--line) }
+  .topbar .brand { padding: 0; flex: 1; justify-content: center; font-size: 15px }
+  .page { padding-block: 18px calc(120px + env(safe-area-inset-bottom)) }
+  #title { font-size: 23px }
+  .recorder { position: fixed; top: auto; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom)); z-index: 30; gap: 10px; flex-wrap: nowrap }
+  .wave { display: none }
+  .rec-right { gap: 6px }
+  .rec-right .btn span { display: none }
+  .lib-item .del { opacity: 1 }
+  .doc, #interim { font-size: 16.5px }
+  .toast { bottom: calc(92px + env(safe-area-inset-bottom)) }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-mark" viewBox="0 0 24 24"><path d="m9 11 6-6 4 4-6 6M9 11l-5 5v4h4l5-5M9 11l4 4"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+</svg>
+
+<div class="shell" id="shell">
+  <aside class="sidebar" id="sidebar" aria-label="Library">
+    <div class="brand"><span class="logo"><i></i></span>Mitschrift</div>
+    <button class="btn primary side-new" id="newBtn" type="button"><svg><use href="#i-plus"/></svg><span data-t="new"></span></button>
+    <div class="label side-label" data-t="library"></div>
+    <div class="lib" id="lib"></div>
+    <div class="side-foot">
+      <button class="btn ghost" type="button" data-open-settings><svg><use href="#i-gear"/></svg><span data-t="settings"></span><span class="status-dot" id="keyDot"></span></button>
+    </div>
+  </aside>
+  <div class="backdrop" id="backdrop"></div>
+
+  <main>
+    <div class="topbar">
+      <button class="icon-btn" id="menuBtn" type="button" aria-label="Menu"><svg><use href="#i-menu"/></svg></button>
+      <div class="brand"><span class="logo"><i></i></span>Mitschrift</div>
+      <button class="icon-btn" type="button" data-open-settings aria-label="Settings"><svg><use href="#i-gear"/></svg></button>
+    </div>
+
+    <div class="page">
+      <header class="head">
+        <input id="title" type="text" aria-label="Title" autocomplete="off">
+        <div class="meta" id="meta"></div>
+      </header>
+
+      <section class="recorder" id="recorder">
+        <button class="recbtn" id="recBtn" type="button"><i></i></button>
+        <div class="rec-time"><span class="mono" id="timer">00:00</span><span class="rec-state" id="state"></span></div>
+        <div class="wave" id="wave" aria-hidden="true"></div>
+        <div class="rec-right">
+          <div class="seg" role="group" aria-label="Spoken language">
+            <button type="button" data-lang="de-DE" aria-pressed="false">DE</button>
+            <button type="button" data-lang="en-US" aria-pressed="true">EN</button>
+          </div>
+          <button class="btn" id="markBtn" type="button"><svg><use href="#i-mark"/></svg><span data-t="mark"></span></button>
+        </div>
+      </section>
+
+      <nav class="tabs" role="tablist">
+        <button role="tab" data-tab="doc" aria-selected="true"><span data-t="tabDoc"></span><span class="n" id="cWords"></span></button>
+        <button role="tab" data-tab="notes" aria-selected="false"><span data-t="tabNotes"></span><span class="n" id="cMarks"></span></button>
+      </nav>
+
+      <section id="v-doc">
+        <div class="empty" id="empty"><b data-t="emptyH"></b><span data-t="emptyP"></span></div>
+        <div class="doc" id="doc"></div>
+        <div id="interim" aria-live="polite"></div>
+        <form class="addnote" id="noteForm">
+          <input id="noteInput" type="text" autocomplete="off">
+          <button class="btn" type="submit" data-t="add"></button>
+        </form>
+        <p class="hint" data-t="hint"></p>
+      </section>
+
+      <section id="v-notes" hidden><div class="notes" id="notes"></div></section>
+    </div>
+  </main>
+</div>
+
+<dialog id="settings" aria-labelledby="setH">
+  <div class="dlg-head"><h2 id="setH" data-t="settings"></h2><button class="icon-btn" type="button" id="closeSettings" aria-label="Close"><svg><use href="#i-x"/></svg></button></div>
+  <div class="dlg-body">
+    <div class="set">
+      <h3><span data-t="engH"></span><span class="pill" id="engPill"></span></h3>
+      <div class="seg" role="group" aria-label="Speech recognition">
+        <button type="button" data-engine="whisper" aria-pressed="true" data-t="engWhisper"></button>
+        <button type="button" data-engine="browser" aria-pressed="false" data-t="engBrowser"></button>
+      </div>
+      <p id="engP"></p>
+      <div class="field" id="modelRow">
+        <select class="btn" id="modelSel" aria-label="Whisper model">
+          <option value="tiny" data-t="mTiny"></option>
+          <option value="base" data-t="mBase"></option>
+          <option value="small" data-t="mSmall"></option>
+        </select>
+        <button class="btn" type="button" id="loadModel" data-t="loadModel"></button>
+      </div>
+      <p class="learned" id="modelStatus"></p>
+    </div>
+    <div class="set">
+      <h3><span data-t="keyH"></span><span class="pill" id="keyPill"></span></h3>
+      <p id="keyP"></p>
+      <div class="field">
+        <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…">
+        <button class="btn primary" type="button" id="saveKey" data-t="saveKey"></button>
+        <button class="btn" type="button" id="removeKey" data-t="removeKey"></button>
+      </div>
+      <p id="costP"></p>
+    </div>
+    <div class="set">
+      <h3><span data-t="glossH"></span><span class="pill" id="glossPill"></span></h3>
+      <p data-t="glossP"></p>
+      <textarea id="glossBox" spellcheck="false" aria-label="Glossary"></textarea>
+      <label class="check"><input type="checkbox" id="learnBox"><span data-t="learnL"></span></label>
+      <div><button class="btn" type="button" id="glossApply" data-t="glossApply"></button></div>
+    </div>
+    <div class="set">
+      <h3 data-t="uiH"></h3>
+      <div class="seg" role="group" aria-label="Interface language">
+        <button type="button" data-ui="de" aria-pressed="true">Deutsch</button>
+        <button type="button" data-ui="en" aria-pressed="false">English</button>
+      </div>
+      <p data-t="privacy"></p>
+    </div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status"><span id="toastMsg"></span><button type="button" id="toastAct" hidden></button></div>
+
+<script>
+const T = {
+  de: {
+    new: "Neue Vorlesung", library: "Vorlesungen", settings: "Einstellungen", mark: "Markieren", rec: "Aufnehmen", stop: "Stoppen",
+    idle: "Bereit", listening: "Hört zu", tabDoc: "Transkript", tabNotes: "Notizen",
+    emptyH: "Noch kein Text", emptyP: "Tippe auf den roten Knopf. Was gesagt wird, erscheint hier als fortlaufender Text.",
+    add: "Notiz hinzufügen", notePh: "Eigene Notiz schreiben …",
+    hint: "Einmal tippen markiert einen Satz. Doppelt tippen bearbeitet ihn, leer lassen löscht ihn. Taste M markiert den letzten Satz.",
+    words: "Wörter", untitled: "Vorlesung", del: "Löschen", delQ: "Diese Vorlesung endgültig löschen?", keep: "Behalten", deleted: "Gelöscht.",
+    noteLabel: "Notiz", hl: "Markiert", todo: "Prüfung & Aufgaben", own: "Eigene Notizen", none: "Nichts gefunden.",
+    qnH: "Schnellnotizen", qnFree: "Ohne KI · kostenlos", qnSub: "Entstehen automatisch aus dem Transkript: die wichtigsten Sätze, Themen, Begriffe und Definitionen.",
+    qnSummary: "Kurzfassung", qnOutline: "Gliederung", qnTerms: "Schlüsselbegriffe", qnDefs: "Definitionen", qnCopy: "Kopieren",
+    qnTooShort: "Für Schnellnotizen braucht es etwas mehr Text, ab etwa 8 Sätzen.", optional: "Optional",
+    aiH: "Ausführlich mit Claude", aiSub: "Claude korrigiert Erkennungsfehler und schreibt ausformulierte Notizen, Begriffe, Prüfungshinweise und Lernkarten.",
+    aiEmpty: "Noch keine KI-Notizen für diese Vorlesung.", aiNoKey: "Verbinde Claude in den Einstellungen, dann entstehen die Notizen direkt hier.",
+    connect: "Claude verbinden", openClaude: "In Claude öffnen", create: "Notizen erstellen", recreate: "Neu erstellen", stopGen: "Abbrechen",
+    edit: "Bearbeiten", done: "Fertig", copy: "Kopieren", copied: "Kopiert.", thinking: "Claude liest die Vorlesung …", writing: "Claude schreibt …",
+    cost: (c, s) => `Fertig nach ${s} s · ca. ${c} $`, notesIn: "Auf", pdf: "PDF", word: "Word", md: "Markdown",
+    pdfHint: "Wähle im Druckfenster „Als PDF speichern“.", wordDone: "Word-Datei geladen.",
+    keyH: "Claude-Zugang (API-Schlüssel)",
+    keyP: "Mit einem API-Schlüssel erstellt die Seite die Notizen selbst. Den Schlüssel bekommst du unter console.anthropic.com → API Keys. Er bleibt nur in diesem Browser gespeichert und wird nur an Anthropic gesendet.",
+    costP: "Abrechnung pro Nutzung, getrennt von einem Claude-Abo. Modell: Claude Opus 5.5. Eine 90-Minuten-Vorlesung kostet ungefähr 0,10–0,30 $.",
+    saveKey: "Speichern & testen", removeKey: "Entfernen", keyOk: "Verbunden", keyNone: "Nicht eingerichtet", keyBad: "Ungültig", keyTesting: "Teste …",
+    keySaved: "Claude ist verbunden.", keyRemoved: "Schlüssel entfernt.",
+    glossH: "Fachbegriffe", glossP: "Ein Begriff pro Zeile, richtig geschrieben. Falsch erkannte Varianten nach einem = mit Komma getrennt, z. B. „Mankiw = man kiw“. Gilt für alle Vorlesungen.",
+    glossPh: "EZB\nHauptrefinanzierungssatz\nMankiw = mankiev, man kiw",
+    terms: n => n === 1 ? "1 Begriff" : `${n} Begriffe`, glossApply: "Auf aktuelle Vorlesung anwenden",
+    glossDone: n => n ? `${n} Stellen korrigiert.` : "Nichts zu korrigieren.",
+    learnL: "Aus meinen Korrekturen lernen: Wenn ich ein falsch erkanntes Wort verbessere, merkt sich die App das und korrigiert es künftig automatisch.",
+    learned: (a, b, n) => `Gelernt: „${a}“ → „${b}“` + (n ? ` · ${n} weitere Stellen korrigiert` : ""), undo: "Rückgängig", undone: "Rückgängig gemacht.",
+    uiH: "Sprache der Oberfläche", privacy: "Vorlesungen bleiben nur in diesem Browser. Mit Whisper verlässt das Audio dein Gerät nicht. Mit der Browser-Erkennung schickt Chrome das Audio an Google.",
+    lineDel: "Satz gelöscht.", nothing: "Noch kein Satz zum Markieren.", marked: "Letzter Satz markiert.", stopFirst: "Erst die Aufnahme stoppen.",
+    blocked: "Mikrofon blockiert. Erlaube es in der Adressleiste und tippe erneut.", net: "Keine Internetverbindung. Die Erkennung versucht es weiter.",
+    noSR: "Dieser Browser kann keine Sprache erkennen. Öffne die Datei in Chrome, Edge oder Safari.", noLines: "Noch kein Text. Starte eine Aufnahme.",
+    sentShort: "Claude ist geöffnet.", sentLong: "Transkript kopiert. In Claude einfügen und senden.",
+    err401: "Der API-Schlüssel ist ungültig. Prüfe ihn in den Einstellungen.", errCredit: "Dein API-Guthaben ist aufgebraucht. Lade es unter console.anthropic.com → Billing auf.",
+    err429: "Zu viele Anfragen. Warte eine Minute und versuche es erneut.", err5xx: "Claude ist gerade überlastet. Versuche es gleich noch einmal.",
+    errNet: "Keine Verbindung zu Claude. Prüfe dein Internet.", errRefusal: "Claude hat diese Anfrage abgelehnt.", errCut: "Die Antwort wurde abgeschnitten, weil sie zu lang war.",
+    errOther: m => "Fehler von Claude: " + m, stopped: "Abgebrochen.",
+    engH: "Spracherkennung", engWhisper: "Genau · Whisper", engBrowser: "Schnell · Browser",
+    engPWhisper: "Whisper läuft komplett auf diesem Gerät: kostenlos, privat, ohne Lücken bei Pausen und mit Satzzeichen. Der Text erscheint mit ein paar Sekunden Verzögerung. Beim ersten Mal wird das Modell heruntergeladen, danach bleibt es im Browser gespeichert.",
+    engPBrowser: "Die Erkennung des Browsers zeigt den Text sofort, verliert aber manchmal Wörter nach Pausen. Gut fürs Handy.",
+    mTiny: "Tiny · ca. 40 MB · am schnellsten", mBase: "Base · ca. 80 MB · empfohlen", mSmall: "Small · ca. 250 MB · am genauesten, für starke Laptops",
+    loadModel: "Modell jetzt laden", modelLoading: p => `Modell wird geladen … ${p} %`, modelIdle: "Das Modell wird beim ersten Aufnehmen geladen. Du kannst es auch jetzt schon laden.",
+    modelReady: d => `Modell bereit · läuft auf ${d === "webgpu" ? "der Grafikkarte (schnell)" : "dem Prozessor (langsamer)"}`,
+    modelErr: "Das Modell konnte nicht geladen werden. Prüfe die Internetverbindung und lade die Seite neu.",
+    converting: n => `Wird umgewandelt … ${n > 1 ? `(${n} Abschnitte)` : ""}`, finishing: "Wird fertig umgewandelt …", whisperErr: m => "Whisper-Fehler: " + m,
+    noMic: "Kein Mikrofon gefunden, oder dieser Browser kann nicht aufnehmen.", waitConvert: "Einen Moment, die Aufnahme wird noch umgewandelt."
+  },
+  en: {
+    new: "New lecture", library: "Lectures", settings: "Settings", mark: "Highlight", rec: "Record", stop: "Stop",
+    idle: "Ready", listening: "Listening", tabDoc: "Transcript", tabNotes: "Notes",
+    emptyH: "No text yet", emptyP: "Tap the red button. What's said appears here as running text.",
+    add: "Add note", notePh: "Write your own note …",
+    hint: "Tap a sentence to highlight it. Double-tap to edit it; leave it empty to delete it. Press M to highlight the last sentence.",
+    words: "words", untitled: "Lecture", del: "Delete", delQ: "Delete this lecture for good?", keep: "Keep", deleted: "Deleted.",
+    noteLabel: "Note", hl: "Highlighted", todo: "Exam & to-dos", own: "My notes", none: "Nothing found.",
+    qnH: "Quick notes", qnFree: "No AI · free", qnSub: "Built automatically from the transcript: the most important sentences, topics, key terms and definitions.",
+    qnSummary: "Summary", qnOutline: "Outline", qnTerms: "Key terms", qnDefs: "Definitions", qnCopy: "Copy",
+    qnTooShort: "Quick notes need a bit more text, about 8 sentences or more.", optional: "Optional",
+    aiH: "In depth with Claude", aiSub: "Claude fixes recognition mistakes and writes full notes, key terms, exam hints and study cards.",
+    aiEmpty: "No AI notes for this lecture yet.", aiNoKey: "Connect Claude in Settings, and the notes are written right here.",
+    connect: "Connect Claude", openClaude: "Open in Claude", create: "Create notes", recreate: "Create again", stopGen: "Cancel",
+    edit: "Edit", done: "Done", copy: "Copy", copied: "Copied.", thinking: "Claude is reading the lecture …", writing: "Claude is writing …",
+    cost: (c, s) => `Done in ${s} s · about $${c}`, notesIn: "In", pdf: "PDF", word: "Word", md: "Markdown",
+    pdfHint: "Choose “Save as PDF” in the print window.", wordDone: "Word file downloaded.",
+    keyH: "Claude access (API key)",
+    keyP: "With an API key, the page writes the notes itself. Get a key at console.anthropic.com → API Keys. It stays in this browser only and is sent only to Anthropic.",
+    costP: "Billed per use, separately from a Claude subscription. Model: Claude Opus 5.5. A 90-minute lecture costs roughly $0.10–0.30.",
+    saveKey: "Save & test", removeKey: "Remove", keyOk: "Connected", keyNone: "Not set up", keyBad: "Invalid", keyTesting: "Testing …",
+    keySaved: "Claude is connected.", keyRemoved: "Key removed.",
+    glossH: "Technical terms", glossP: "One term per line, spelled correctly. Add misheard versions after an =, separated by commas, e.g. “Mankiw = man kiw”. Applies to every lecture.",
+    glossPh: "ECB\nMain refinancing rate\nMankiw = mankiev, man kiw",
+    terms: n => n === 1 ? "1 term" : `${n} terms`, glossApply: "Apply to current lecture",
+    glossDone: n => n ? `Fixed ${n} places.` : "Nothing to fix.",
+    learnL: "Learn from my corrections: when I fix a misheard word, the app remembers it and fixes it automatically from then on.",
+    learned: (a, b, n) => `Learned: “${a}” → “${b}”` + (n ? ` · fixed ${n} more places` : ""), undo: "Undo", undone: "Undone.",
+    uiH: "Interface language", privacy: "Lectures stay in this browser only. With Whisper, the audio never leaves your device. With browser recognition, Chrome sends the audio to Google.",
+    lineDel: "Sentence deleted.", nothing: "No sentence to highlight yet.", marked: "Last sentence highlighted.", stopFirst: "Stop the recording first.",
+    blocked: "Microphone blocked. Allow it in the address bar and tap again.", net: "No internet connection. Recognition keeps trying.",
+    noSR: "This browser can't recognize speech. Open the file in Chrome, Edge or Safari.", noLines: "No text yet. Start a recording.",
+    sentShort: "Claude is open.", sentLong: "Transcript copied. Paste it into Claude and send.",
+    err401: "The API key is invalid. Check it in Settings.", errCredit: "Your API credit is used up. Top it up at console.anthropic.com → Billing.",
+    err429: "Too many requests. Wait a minute and try again.", err5xx: "Claude is overloaded right now. Try again in a moment.",
+    errNet: "Can't reach Claude. Check your internet connection.", errRefusal: "Claude declined this request.", errCut: "The answer was cut off because it got too long.",
+    errOther: m => "Error from Claude: " + m, stopped: "Cancelled.",
+    engH: "Speech recognition", engWhisper: "Accurate · Whisper", engBrowser: "Fast · Browser",
+    engPWhisper: "Whisper runs entirely on this device: free, private, no gaps after pauses, with punctuation. Text appears a few seconds late. The first time, the model is downloaded; after that it stays saved in the browser.",
+    engPBrowser: "The browser's recognition shows text instantly but sometimes loses words after pauses. Good for phones.",
+    mTiny: "Tiny · about 40 MB · fastest", mBase: "Base · about 80 MB · recommended", mSmall: "Small · about 250 MB · most accurate, for strong laptops",
+    loadModel: "Load model now", modelLoading: p => `Loading model … ${p} %`, modelIdle: "The model loads the first time you record. You can also load it now.",
+    modelReady: d => `Model ready · running on ${d === "webgpu" ? "the graphics card (fast)" : "the processor (slower)"}`,
+    modelErr: "The model couldn't be loaded. Check your internet connection and reload the page.",
+    converting: n => `Converting … ${n > 1 ? `(${n} parts)` : ""}`, finishing: "Finishing conversion …", whisperErr: m => "Whisper error: " + m,
+    noMic: "No microphone found, or this browser can't record.", waitConvert: "One moment, the recording is still being converted."
+  }
+};
+// Phrases that usually mean "exam", "homework" or "deadline"
+const TODO_RX = /\b(klausur|prüfung|prüfungsrelevant|hausaufgabe|abgabe|frist|deadline|bis nächste[n]? woche|lesen sie|kapitel \w+|übungsblatt|wichtig|exam|test|quiz|homework|assignment|due|read chapter|chapter \w+|next week|important|will be on)\b/i;
+const MODEL = "claude-opus-5-5";
+const PRICE_IN = 4 / 1e6, PRICE_OUT = 20 / 1e6; // USD per token for Claude Opus 5.5
+
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const $ = id => document.getElementById(id);
+const KEY = "mitschrift.sessions.v1";
+const pref = { get(k) { try { return localStorage.getItem(k) } catch { return null } }, set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v) } catch {} } };
+
+let ui = pref.get("mitschrift.ui") || "de";
+let sessions; try { sessions = JSON.parse(localStorage.getItem(KEY)) || [] } catch { sessions = [] }
+let cur = null, lang = "de-DE", tab = "doc";
+let rec = null, want = false, startedAt = 0, tick = null, wakeLock = null, level = 0;
+let editing = false, pendingRender = false, gen = null, editingMd = false;
+const t = k => T[ui][k];
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(sessions)) } catch { toast("Speichern fehlgeschlagen – exportiere die Vorlesung. / Couldn't save – export the lecture.", true) } };
+
+const fmt = ms => { const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60;
+  return (h ? h + ":" : "") + String(m).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0") };
+const now = () => cur.elapsed + (want ? Date.now() - startedAt : 0);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e };
+const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "button"; b.onclick = fn; return b };
+const icon = id => { const s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); const u = document.createElementNS("http://www.w3.org/2000/svg", "use"); u.setAttribute("href", "#" + id); s.append(u); return s };
+const wordCount = s => s.lines.reduce((n, l) => n + l.text.split(/\s+/).filter(Boolean).length, 0);
+const ended = s => /[.!?…:;]$/.test(s) ? s : s + ".";
+
+function toast(msg, err, action) {
+  const x = $("toast"); $("toastMsg").textContent = msg; x.classList.toggle("err", !!err); x.classList.add("show");
+  const a = $("toastAct"); a.hidden = !action;
+  if (action) { a.textContent = action.label; a.onclick = () => { action.run(); x.classList.remove("show") } }
+  clearTimeout(toast.h); toast.h = setTimeout(() => x.classList.remove("show"), action ? 7000 : err ? 5500 : 2600);
+}
+
+/* ---------- sessions ---------- */
+function newSession() {
+  if (want) return toast(t("stopFirst"));
+  if (wQueue) return toast(t("waitConvert"));
+  const d = new Date();
+  cur = { id: String(Date.now()), title: `${t("untitled")} · ${d.toLocaleDateString(ui)}`, lang, created: d.toISOString(), elapsed: 0, lines: [] };
+  sessions.unshift(cur); save(); closeDrawer(); setTab("doc"); renderAll(); $("title").select();
+}
+function pick(id) {
+  if (want) return toast(t("stopFirst"));
+  if (wQueue) return toast(t("waitConvert"));
+  cur = sessions.find(s => s.id === id) || sessions[0]; setLang(cur.lang || "de-DE"); editingMd = false; closeDrawer(); renderAll();
+}
+function removeSession(id) {
+  sessions = sessions.filter(s => s.id !== id); save(); toast(t("deleted"));
+  if (!sessions.length) return newSession();
+  if (cur.id === id) cur = sessions[0];
+  renderAll();
+}
+
+/* ---------- rendering ---------- */
+function applyUI() {
+  document.documentElement.lang = ui;
+  document.querySelectorAll("[data-t]").forEach(e => e.textContent = t(e.dataset.t));
+  document.querySelectorAll("[data-ui]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.ui === ui)));
+  $("noteInput").placeholder = t("notePh");
+  $("recBtn").setAttribute("aria-label", want ? t("stop") : t("rec"));
+  stateUpdate(); engineUI();
+  $("keyP").textContent = t("keyP"); $("costP").textContent = t("costP"); $("glossBox").placeholder = t("glossPh");
+  keyStatus(); buildRules();
+  if (cur) renderAll();
+}
+function renderAll() {
+  $("title").value = cur.title;
+  $("timer").textContent = fmt(now());
+  renderDoc();
+  if (tab === "notes") renderNotes();
+}
+function renderMeta() {
+  const d = new Date(cur.created).toLocaleDateString(ui, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const w = wordCount(cur);
+  $("meta").replaceChildren(el("span", null, d), el("span", null, fmt(cur.elapsed)), el("span", null, `${w.toLocaleString(ui)} ${t("words")}`), el("span", null, cur.lang === "de-DE" ? "Deutsch" : "English"));
+  $("cWords").textContent = w ? w.toLocaleString(ui) : "";
+  const m = cur.lines.filter(l => l.star).length; $("cMarks").textContent = m || "";
+}
+function renderLib() {
+  const root = $("lib"); root.replaceChildren();
+  sessions.forEach(s => {
+    const item = el("div", "lib-item" + (s.id === cur.id ? " cur" : ""));
+    const open = el("button", "open"); open.type = "button"; open.onclick = () => pick(s.id);
+    open.append(el("b", null, s.title), el("small", null, `${new Date(s.created).toLocaleDateString(ui, { day: "numeric", month: "short" })} · ${wordCount(s).toLocaleString(ui)} ${t("words")}`));
+    const del = el("button", "icon-btn del"); del.type = "button"; del.append(icon("i-trash")); del.setAttribute("aria-label", t("del") + ": " + s.title);
+    del.onclick = () => {
+      if (busy() && s.id === cur.id) return toast(want ? t("stopFirst") : t("waitConvert"));
+      item.querySelector(".confirm")?.remove();
+      const c = el("div", "confirm"); c.append(el("span", null, t("delQ")), btn("btn danger", t("del"), () => removeSession(s.id)), btn("btn", t("keep"), () => c.remove()));
+      item.append(c); c.querySelector(".danger").focus();
+    };
+    item.append(open, del); root.append(item);
+  });
+}
+// The transcript reads like a document: sentences flow into paragraphs, own notes sit in between
+function renderDoc() {
+  if (editing) { pendingRender = true; return }
+  pendingRender = false;
+  const root = $("doc"); root.replaceChildren();
+  let p = null, count = 0, lastT = -1e9;
+  cur.lines.forEach(l => {
+    if (l.own) { const n = el("div", "note"); n.append(el("span", "label", t("noteLabel")), lineSpan(l)); root.append(n); p = null; return }
+    if (!p || count >= 6 || l.t - lastT > 15000) { p = el("p"); root.append(p); count = 0 }
+    if (count) p.append(" ");
+    p.append(lineSpan(l)); count++; lastT = l.t;
+  });
+  $("empty").hidden = cur.lines.length > 0;
+  renderMeta(); renderLib();
+}
+function lineSpan(l) {
+  const s = el("span", "ln" + (l.star ? " hl" : ""), l.own ? l.text : ended(l.text));
+  s.tabIndex = 0;
+  const toggle = () => { l.star = !l.star; save(); s.classList.toggle("hl", l.star); renderMeta() };
+  // One tap highlights, two quick taps edit: wait briefly to tell them apart
+  s.onclick = () => {
+    if (s.isContentEditable) return;
+    if (s._tap) { clearTimeout(s._tap); s._tap = 0; editSpan(s, l); return }
+    s._tap = setTimeout(() => { s._tap = 0; toggle() }, 250);
+  };
+  s.onkeydown = e => { if (s.isContentEditable) return; if (e.key === "Enter") { e.preventDefault(); toggle() } if (e.key === "F2" || e.key === "e") { e.preventDefault(); editSpan(s, l) } };
+  return s;
+}
+function editSpan(s, l) {
+  editing = true;
+  s.textContent = l.text; s.contentEditable = "true"; s.classList.add("editing"); s.focus();
+  const r = document.createRange(); r.selectNodeContents(s); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+  let done = false;
+  const finish = keep => {
+    if (done) return; done = true; editing = false;
+    s.contentEditable = "false";
+    const v = s.textContent.replace(/\s+/g, " ").trim();
+    if (keep && !v) { cur.lines.splice(cur.lines.indexOf(l), 1); save(); toast(t("lineDel")) }
+    else if (keep && v !== l.text) { const old = l.text; l.text = v; save(); learnFrom(old, v, l) }
+    renderDoc();
+  };
+  s.onkeydown = e => { e.stopPropagation(); if (e.key === "Enter") { e.preventDefault(); finish(true) } else if (e.key === "Escape") { e.preventDefault(); finish(false) } };
+  s.onblur = () => finish(true);
+}
+function addLine(text, own) {
+  text = text.replace(/\s+/g, " ").trim(); if (!text) return;
+  if (!own) {
+    text = fixText(text)[0];
+    // Speech recognition returns lowercase without punctuation: capitalize the first letter
+    text = text.charAt(0).toUpperCase() + text.slice(1);
+  }
+  cur.lines.push({ t: now(), text, star: false, own: !!own }); save();
+  renderDoc();
+  if (want && tab === "doc") $("interim").scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+/* ---------- quick notes (no AI) ---------- */
+const STOP = new Set((
+  "der die das den dem des ein eine einen einem einer eines und oder aber auch als am an auf aus bei bin bis bist da dadurch daher damit dann darauf darum " +
+  "dass davon dazu dein deine denn dessen dich dir doch dort du durch eben er es etwa etwas euch euer für gegen gewesen hab habe haben hat hatte hätte hier " +
+  "hin ich ihr ihre ihren ihrem im immer in indem ins ist ja jede jedem jeden jeder jedes jetzt kann kannst kein keine keinen können könnte machen macht man " +
+  "manche mehr mein meine mit muss müssen nach nicht nichts noch nun nur ob ohne schon sehr sein seine seiner sich sie sind so solche soll sollte sollten " +
+  "sondern sonst über um uns unser unter viel viele vom von vor wann war waren warum was weil weiter welche welcher welches wenn wer werden wie wieder will " +
+  "wir wird wo wurde wurden würde würden zu zum zur zwar zwischen also halt mal okay ok genau eigentlich gut ganz gibt geht gehen heute einfach natürlich " +
+  "quasi sozusagen ähm äh hm nein dieser diese dieses diesem diesen einmal sagen sagt gesagt sehen sieht wichtig erst zwei drei vier fünf eins andere anderen " +
+  "beim bitte danke mich mir ihm ihn ihnen seinem seinen deren denen dafür dagegen darüber hierzu wobei sowie bzw usw beispiel zb gerade sogar wirklich " +
+  "the a an and or but if then than that this these those is are was were be been being have has had do does did of to in on at by for with from as into " +
+  "about over after before under up down out off so not no yes it its they them their we our you your he she his her him me my can could will would should " +
+  "may might must just very really also there here what which who whom when where why how all any some more most other such only own same too again once " +
+  "okay ok right well like going get got go gonna know think thing things lot kind sort yeah um uh today now let lets see say said one two three first " +
+  "because while each both few many much way important " +
+  "nächste nächsten woche wirkt wirken steigt steigen sinkt sinken kommen kommt schauen lesen wäre dauert besonders deshalb außerdem daneben " +
+  "vielen stark starke starker hohen höheren niedrige niedrigen neue neuen großen kleinen beiden letzten nämlich klar klares " +
+  "next week works makes made take takes look read high higher low lower new big small last"
+).split(" "));
+// Phrases that announce a new topic
+const TRANS_RX = /\b(jetzt zum|jetzt zur|kommen wir zu|kommen wir zum|kommen wir zur|nächstes thema|zum nächsten|als nächstes|move on|moving on|next topic|turn to|turning to)\b/i;
+// Phrases that usually introduce a definition or a key point
+const DEF_RX = /\b(nennt man|bezeichnet man|versteht man unter|ist definiert|definiert als|bedeutet|heißt das|das heißt|is called|is defined as|defined as|refers to|means that|we call)\b/i;
+const CUE_RX = /\b(wichtig|merken|merkt euch|zusammengefasst|zusammenfassend|im kern|entscheidend|grundsätzlich|definition|important|key point|remember|in summary|to summarize|crucial|essentially)\b/i;
+const FILLER_RX = /^(okay|ok|so|genau|gut|also|ja|alright|right|well)\b[\s,.]*$/i;
+
+const words = s => s.toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, " ").split(/\s+/).filter(w => w.length > 2 && !STOP.has(w) && !/^\d+$/.test(w));
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+function quickNotes(lines) {
+  const sents = lines.filter(l => !l.own && !FILLER_RX.test(l.text)).map(l => ({ l, w: words(l.text) }));
+  const tf = new Map();
+  sents.forEach(s => new Set(s.w).forEach(w => tf.set(w, (tf.get(w) || 0) + 1)));
+  // Glossary terms count extra: they are the course's own vocabulary. Words written with a capital
+  // letter mid-sentence are usually German nouns, which make better key terms than verbs.
+  const gloss = new Map(parseGloss(glossText).flatMap(g => words(g.right).map(w => [w, g.right])));
+  const noun = new Set(), surface = new Map();
+  sents.forEach(s => s.l.text.split(/\s+/).forEach((raw, i) => {
+    const w = raw.replace(/[^\p{L}\p{N}-]/gu, ""); if (!w) return;
+    if (i > 0 && /^\p{Lu}/u.test(w)) noun.add(w.toLowerCase());
+    if (/\p{Lu}/u.test(w)) surface.set(w.toLowerCase(), w);
+  }));
+  const weight = w => (tf.get(w) || 0) * Math.log2(2 + w.length) * (gloss.has(w) ? 3 : 1) * (noun.has(w) ? 1.5 : 1);
+  const show = w => gloss.get(w) && words(gloss.get(w)).length === 1 ? gloss.get(w) : w.split(" ").map(x => surface.get(x) || cap(x)).join(" ");
+
+  // Key terms: frequent, longer words, plus two-word phrases that come up repeatedly side by side
+  const pairs = new Map();
+  sents.forEach(s => {
+    const raw = s.l.text.toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, " ").split(/\s+/);
+    for (let i = 0; i < raw.length - 1; i++) {
+      const a = raw[i], b = raw[i + 1];
+      if (a.length > 2 && b.length > 2 && !STOP.has(a) && !STOP.has(b)) pairs.set(a + " " + b, (pairs.get(a + " " + b) || 0) + 1);
+    }
+  });
+  const phraseList = [...pairs].filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([p]) => p);
+  const inPhrase = new Set(phraseList.flatMap(p => p.split(" ")));
+  const single = [...tf.keys()].filter(w => tf.get(w) >= 2 && !inPhrase.has(w)).sort((a, b) => weight(b) - weight(a));
+  const terms = [...phraseList, ...single].slice(0, 10).map(show);
+
+  if (sents.length < 8) return { short: true, terms, summary: [], sections: [], defs: [] };
+
+  const score = s => {
+    if (s.w.length < 3) return 0;
+    let v = s.w.reduce((n, w) => n + weight(w), 0) / Math.sqrt(s.w.length);
+    if (s.l.star) v *= 2.5;
+    if (CUE_RX.test(s.l.text) || DEF_RX.test(s.l.text)) v *= 1.6;
+    if (TODO_RX.test(s.l.text)) v *= 1.2;
+    return v;
+  };
+  sents.forEach(s => s.score = score(s));
+
+  // Summary: the best ~15 % of sentences, kept in the order they were said
+  const k = Math.max(3, Math.min(10, Math.round(sents.length * 0.15)));
+  const summary = [...sents].sort((a, b) => b.score - a.score).slice(0, k).sort((a, b) => a.l.t - b.l.t).map(s => s.l);
+
+  // Outline: a new section starts after a long pause, at phrases like "kommen wir zu",
+  // or where the words used in the sentences before and after a point differ most
+  const vec = blk => { const m = new Map(); blk.forEach(s => s.w.forEach(w => m.set(w, (m.get(w) || 0) + 1))); return m };
+  const cos = (a, b) => { let d = 0, x = 0, y = 0; a.forEach((v, w) => { d += v * (b.get(w) || 0); x += v * v }); b.forEach(v => y += v * v); return x && y ? d / Math.sqrt(x * y) : 0 };
+  const W = 4, n = sents.length;
+  const sim = [];
+  for (let i = 1; i < n; i++) sim[i] = cos(vec(sents.slice(Math.max(0, i - W), i)), vec(sents.slice(i, i + W)));
+  const inner = sim.slice(W, n - W + 1).filter(v => v != null);
+  const mean = inner.reduce((a, b) => a + b, 0) / (inner.length || 1);
+  const sd = Math.sqrt(inner.reduce((a, b) => a + (b - mean) ** 2, 0) / (inner.length || 1));
+  const strong = i => sents[i].l.t - sents[i - 1].l.t > 45000 || TRANS_RX.test(sents[i].l.text);
+  const cuts = [0];
+  for (let i = 1; i < n; i++) {
+    const since = i - cuts.at(-1);
+    const dip = i >= W && i <= n - W && sim[i] < mean - 0.7 * sd && sim[i] <= (sim[i - 1] ?? 1) && sim[i] <= (sim[i + 1] ?? 1);
+    if (cuts.length < 8 && ((strong(i) && since >= 3) || (dip && since >= 5 && n - i >= 4))) cuts.push(i);
+  }
+  const groups = cuts.map((c, k) => sents.slice(c, cuts[k + 1] ?? n));
+  const sections = groups.map(g => {
+    // Title: the words most typical for this part compared with the whole lecture, preferring nouns
+    // and words from an opening sentence such as "jetzt zum Transmissionsmechanismus"
+    const local = new Map(); g.forEach(s => new Set(s.w).forEach(w => local.set(w, (local.get(w) || 0) + 1)));
+    const opening = new Set(TRANS_RX.test(g[0].l.text) ? g[0].w : []);
+    const ts = ([w, c]) => c * c / tf.get(w) * Math.log2(2 + w.length) * (noun.has(w) ? 1.5 : 1) * (opening.has(w) ? 2 : 1) * (gloss.has(w) ? 1.5 : 1);
+    const title = [...local].filter(([w, c]) => c >= 2 || opening.has(w)).sort((a, b) => ts(b) - ts(a))
+      .slice(0, 2).map(([w]) => show(w)).join(" · ") || show(g[0].w[0] || "…");
+    const n = Math.max(2, Math.min(4, Math.round(g.length / 5)));
+    return { title, points: [...g].sort((a, b) => b.score - a.score).slice(0, n).sort((a, b) => a.l.t - b.l.t).map(s => s.l) };
+  });
+
+  const defs = sents.filter(s => DEF_RX.test(s.l.text)).slice(0, 8).map(s => s.l);
+  return { short: false, terms, summary, sections, defs };
+}
+function quickMd(q) {
+  if (q.short) return q.terms.length ? `## ${t("qnTerms")}\n\n${q.terms.join(", ")}\n` : "";
+  let s = `## ${t("qnSummary")}\n\n` + q.summary.map(l => `- ${ended(l.text)}`).join("\n") + "\n\n";
+  s += `## ${t("qnOutline")}\n\n` + q.sections.map((sec, i) => `### ${i + 1}. ${sec.title}\n\n` + sec.points.map(l => `- ${ended(l.text)}`).join("\n")).join("\n\n") + "\n\n";
+  if (q.terms.length) s += `## ${t("qnTerms")}\n\n${q.terms.join(", ")}\n\n`;
+  if (q.defs.length) s += `## ${t("qnDefs")}\n\n` + q.defs.map(l => `- ${ended(l.text)}`).join("\n") + "\n";
+  return s;
+}
+function quickCard() {
+  const q = quickNotes(cur.lines);
+  const c = el("section", "card ai");
+  const head = el("div", "ai-head"); const hl = el("div"); hl.style.cssText = "display:flex;gap:12px;align-items:flex-start";
+  const sp = el("span", "spark"); sp.append(icon("i-mark"));
+  const ht = el("div"); const h = el("h3", null, t("qnH") + " "); h.append(el("span", "pill ok", t("qnFree"))); ht.append(h, el("p", null, t("qnSub")));
+  hl.append(sp, ht); head.append(hl); c.append(head);
+  const body = el("div", "ai-body md");
+  if (q.short && !q.terms.length) { body.classList.add("placeholder"); body.textContent = t("qnTooShort") }
+  else {
+    body.innerHTML = mdToHtml(quickMd(q));
+    if (q.short) body.append(el("p", "none", t("qnTooShort")));
+  }
+  c.append(body);
+  const foot = el("div", "ai-foot"); foot.append(el("span", "status", ""), btn("btn ghost", t("qnCopy"), () => copy(quickMd(q), t("copied"))));
+  c.append(foot);
+  return c;
+}
+
+/* ---------- notes view ---------- */
+function listCard(title, cls, items) {
+  const c = el("section", "card " + cls); const h = el("h3", null, title + " "); h.append(el("span", "n", items.length || "")); c.append(h);
+  if (!items.length) { c.append(el("p", "none", t("none"))); return c }
+  const ul = el("ul"); items.forEach(l => ul.append(el("li", null, l.own ? l.text : ended(l.text)))); c.append(ul); return c;
+}
+function renderNotes() {
+  const root = $("notes"); root.replaceChildren();
+  const bar = el("div", "notes-bar");
+  const sel = el("select", "btn"); sel.id = "noteLang"; sel.setAttribute("aria-label", "Notes language");
+  [["de", "Deutsch"], ["en", "English"]].forEach(([v, n]) => { const o = el("option", null, `${t("notesIn")} ${n}`); o.value = v; sel.append(o) });
+  sel.value = pref.get("mitschrift.noteLang") || (cur.lang === "en-US" ? "en" : "de");
+  sel.onchange = () => pref.set("mitschrift.noteLang", sel.value);
+  const exp = el("div", "btnrow"); exp.style.cssText = "display:flex;gap:6px;flex-wrap:wrap";
+  for (const [label, fn] of [[t("pdf"), exportPdf], [t("word"), exportWord], [t("md"), () => download(safeName() + ".md", markdown(), "text/markdown")]]) {
+    const b = btn("btn", label, fn); b.prepend(icon("i-down")); exp.append(b);
+  }
+  bar.append(sel, exp); root.append(bar);
+  root.append(quickCard());
+
+  // AI notes
+  const hasKey = !!pref.get("mitschrift.apikey");
+  const ai = el("section", "card ai");
+  const head = el("div", "ai-head"); const hl = el("div"); hl.style.cssText = "display:flex;gap:12px;align-items:flex-start";
+  const sp = el("span", "spark"); sp.append(icon("i-spark"));
+  const ah = el("h3", null, t("aiH") + " "); ah.append(el("span", "pill", t("optional")));
+  const ht = el("div"); ht.append(ah, el("p", null, t("aiSub")));
+  hl.append(sp, ht);
+  const acts = el("div"); acts.style.cssText = "display:flex;gap:6px;flex-wrap:wrap";
+  if (gen) acts.append(btn("btn", t("stopGen"), () => gen.ctl.abort()));
+  else if (hasKey) acts.append(btn("btn primary", cur.summary ? t("recreate") : t("create"), () => generateNotes(sel.value)));
+  else acts.append(btn("btn", t("openClaude"), () => sendToClaude(sel.value)), btn("btn primary", t("connect"), openSettings));
+  head.append(hl, acts); ai.append(head);
+
+  const body = el("div", "ai-body"); body.id = "aiBody";
+  if (editingMd) {
+    const ta = el("textarea", "edit-md"); ta.value = cur.summary || ""; ta.oninput = () => { cur.summary = ta.value; save() }; body.append(ta);
+  } else if (gen) {
+    if (gen.text) { body.classList.add("md"); body.innerHTML = mdToHtml(gen.text) }
+    else { const th = el("span", "thinking"); th.append(el("i"), t("thinking")); body.append(th) }
+  } else if (cur.summary?.trim()) { body.classList.add("md"); body.innerHTML = mdToHtml(cur.summary) }
+  else { body.classList.add("placeholder"); body.textContent = hasKey ? t("aiEmpty") : t("aiNoKey") }
+  ai.append(body);
+
+  const foot = el("div", "ai-foot");
+  const st = el("span", "status" + (cur.aiError ? " err" : ""), gen ? (gen.text ? t("writing") : "") : (cur.aiError || cur.aiInfo || "")); st.id = "aiStatus";
+  foot.append(st);
+  if (!gen && (cur.summary?.trim() || editingMd)) {
+    foot.append(btn("btn ghost", editingMd ? t("done") : t("edit"), () => { editingMd = !editingMd; renderNotes() }));
+    foot.append(btn("btn ghost", t("copy"), () => copy(cur.summary, t("copied"))));
+  }
+  ai.append(foot); root.append(ai);
+
+  const speech = cur.lines.filter(l => !l.own);
+  root.append(listCard(t("hl"), "hl", cur.lines.filter(l => l.star)));
+  root.append(listCard(t("todo"), "todo", speech.filter(l => TODO_RX.test(l.text))));
+  root.append(listCard(t("own"), "own", cur.lines.filter(l => l.own)));
+}
+function setTab(name) {
+  tab = name;
+  document.querySelectorAll("[data-tab]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
+  $("v-doc").hidden = name !== "doc"; $("v-notes").hidden = name !== "notes";
+  if (name === "notes") renderNotes();
+}
+
+/* ---------- glossary & learning ---------- */
+let glossText = pref.get("mitschrift.glossary") || "";
+let rules = [];
+const escRx = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+function parseGloss(txt) {
+  return txt.split("\n").map(s => s.trim()).filter(Boolean).map(line => {
+    const [right, rest = ""] = line.split(/\s*=\s*/);
+    return { right: right.trim(), variants: [right, ...rest.split(",")].map(v => v.trim()).filter(Boolean) };
+  }).filter(g => g.right);
+}
+function buildRules() {
+  const terms = parseGloss(glossText);
+  // Ignore case, spaces and hyphens, so "haupt refinanzierungs satz" still matches
+  rules = terms.flatMap(g => g.variants.map(v => {
+    const body = [...v.replace(/[\s-]+/g, "")].map(escRx).join("[\\s-]?");
+    return [new RegExp(`(?<![\\p{L}\\p{N}])${body}(?![\\p{L}\\p{N}])`, "giu"), g.right];
+  }));
+  $("glossPill").textContent = t("terms")(terms.length);
+  return terms;
+}
+function setGloss(text) { glossText = text; pref.set("mitschrift.glossary", text); $("glossBox").value = text; buildRules() }
+function fixText(s) {
+  let n = 0;
+  for (const [rx, right] of rules) s = s.replace(rx, m => { if (m !== right) n++; return right });
+  return [s, n];
+}
+function fixLecture(except) {
+  let total = 0;
+  cur.lines.forEach(l => { if (l.own || l === except) return; const [s, n] = fixText(l.text); if (n) { l.text = s; total += n } });
+  return total;
+}
+// When a misheard word is corrected by hand, remember it as a glossary rule and fix the same mistake elsewhere
+function changedRuns(a, b) {
+  // Same word count: compare word by word and collect each run of changed words
+  if (a.length === b.length) {
+    const runs = []; let r = null;
+    a.forEach((w, k) => { if (w !== b[k]) { if (!r) runs.push(r = { from: [], to: [] }); r.from.push(w); r.to.push(b[k]) } else r = null });
+    return runs;
+  }
+  // Otherwise take everything between the common start and the common end
+  let i = 0; while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  let j = 0; while (j < a.length - i && j < b.length - i && a[a.length - 1 - j] === b[b.length - 1 - j]) j++;
+  return [{ from: a.slice(i, a.length - j), to: b.slice(i, b.length - j) }];
+}
+function learnFrom(oldT, newT) {
+  if (pref.get("mitschrift.learn") === "0") return;
+  const trim = w => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "");
+  const pairs = [];
+  for (const r of changedRuns(oldT.split(" "), newT.split(" "))) {
+    const from = trim(r.from.join(" ")).toLowerCase(), to = trim(r.to.join(" "));
+    if (!from || !to || to.length < 2 || r.from.length > 3 || r.to.length > 3) continue;
+    // Pure capitalization fixes are only worth learning for acronyms and brand-style words (EZB, iPhone)
+    if (from === to.toLowerCase() && !/\p{Lu}/u.test(to.slice(1))) continue;
+    if (from === to) continue;
+    pairs.push([from, to]);
+  }
+  if (!pairs.length) return;
+  const beforeGloss = glossText, beforeLines = JSON.stringify(cur.lines);
+  const lines = glossText.split("\n").filter(s => s.trim());
+  const learned = [];
+  for (const [from, to] of pairs) {
+    const caseOnly = from === to.toLowerCase();
+    const idx = lines.findIndex(s => s.split("=")[0].trim().toLowerCase() === to.toLowerCase());
+    if (idx >= 0) {
+      if (caseOnly || parseGloss(lines[idx])[0].variants.some(v => v.toLowerCase() === from)) continue;
+      lines[idx] += lines[idx].includes("=") ? `, ${from}` : ` = ${from}`;
+    } else lines.push(caseOnly ? to : `${to} = ${from}`);
+    learned.push([from, to]);
+  }
+  if (!learned.length) return;
+  setGloss(lines.join("\n"));
+  const n = fixLecture(); save(); renderDoc();
+  const [f, to] = learned[0];
+  toast(t("learned")(learned.length > 1 ? learned.map(p => p[0]).join(", ") : f, learned.length > 1 ? learned.map(p => p[1]).join(", ") : to, n), false,
+    { label: t("undo"), run: () => { setGloss(beforeGloss); cur.lines = JSON.parse(beforeLines); save(); renderDoc(); toast(t("undone")) } });
+}
+
+/* ---------- wave ---------- */
+const BARS = 48;
+$("wave").append(...Array.from({ length: BARS }, () => el("span")));
+function animate() {
+  level *= 0.93;
+  const bars = $("wave").children;
+  for (let i = 0; i < BARS; i++) {
+    const center = 1 - Math.abs(i - BARS / 2) / (BARS / 2);
+    bars[i].style.height = want ? (2 + Math.random() * 24 * level * (0.3 + center)) + "px" : "2px";
+  }
+  if (want) requestAnimationFrame(animate);
+}
+
+/* ---------- speech recognition ---------- */
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === l)));
+  if (cur) { cur.lang = l; save(); renderMeta() }
+  if (rec && want) { try { rec.stop() } catch {} } // onend restarts with the new language
+}
+function makeRec() {
+  const r = new SR();
+  r.continuous = true; r.interimResults = true;
+  r.onresult = e => {
+    let interim = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const res = e.results[i];
+      if (res.isFinal) addLine(res[0].transcript); else interim += res[0].transcript;
+    }
+    r.pending = interim; $("interim").textContent = interim; level = 1;
+  };
+  r.onerror = e => {
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") { stop(); toast(t("blocked"), true) }
+    else if (e.error === "network") toast(t("net"), true);
+    else if (e.error === "language-not-supported") { stop(); toast(t("noSR"), true) }
+  };
+  // Browsers end recognition after silence or about a minute. Keep words that were still being
+  // recognized when it stopped, then restart at once (and again shortly after if the first try is refused).
+  r.onend = () => {
+    if (r.pending?.trim()) addLine(r.pending);
+    r.pending = ""; $("interim").textContent = "";
+    if (!want) return;
+    const again = delay => setTimeout(() => { if (!want) return; try { r.lang = lang; r.start() } catch { if (delay < 2000) again(delay * 4) } }, delay);
+    try { r.lang = lang; r.start() } catch { again(100) }
+  };
+  return r;
+}
+/* ---------- Whisper: records audio and converts it to text on this device ---------- */
+const TJS = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/transformers.min.js";
+const MODELS = { tiny: "onnx-community/whisper-tiny", base: "onnx-community/whisper-base", small: "onnx-community/whisper-small" };
+// Runs in a background worker so the page stays smooth; jobs run one after another in arrival order
+// (a classic worker with a dynamic import also works when the page is opened as a local file)
+const WORKER_SRC = `
+let asr = null, key = "", device = "";
+async function load(model) {
+  if (asr && key === model) return;
+  const { pipeline } = await import("${TJS}");
+  const progress_callback = p => self.postMessage({ type: "progress", p });
+  const tries = self.navigator.gpu ? ["webgpu", "wasm"] : ["wasm"];
+  let err;
+  for (const d of tries) {
+    try {
+      const dtype = d === "webgpu" ? { encoder_model: "fp32", decoder_model_merged: "q4" } : "q8";
+      asr = await pipeline("automatic-speech-recognition", model, { device: d, dtype, progress_callback });
+      key = model; device = d; self.postMessage({ type: "ready", device: d }); return;
+    } catch (e) { err = e }
+  }
+  throw err;
+}
+async function handle(m) {
+  try {
+    await load(m.model);
+    if (m.type === "run") {
+      const out = await asr(m.audio, { language: m.language, task: "transcribe", chunk_length_s: 30, stride_length_s: 5 });
+      self.postMessage({ type: "text", id: m.id, sid: m.sid, text: out.text || "" });
+    }
+  } catch (e) { self.postMessage({ type: "error", id: m.id, load: m.type === "load", message: String(e && e.message || e) }) }
+}
+let chain = Promise.resolve();
+self.onmessage = e => { chain = chain.then(() => handle(e.data)) };
+`;
+// Whisper sometimes invents these on silence or noise
+const HALLU_RX = /^(untertitel|untertitelung|vielen dank (fürs|für's|für das|für ihre) ?(zuschauen|zusehen|zuhören|aufmerksamkeit)|thank you( very much)? for watching|thanks for watching|copyright|bis zum nächsten mal)\b|^[\s.,!?…-]*$/i;
+
+let worker = null, wDevice = "", wReady = false, wQueue = 0, wChunk = 0, wFiles = new Map(), wLoadErr = false;
+let audio = null; // { stream, ctx, proc, rate, parts, len, speech, silent, floor }
+const activeModel = () => MODELS[pref.get("mitschrift.model")] ? pref.get("mitschrift.model") : "base";
+const engine = () => pref.get("mitschrift.engine") || (matchMedia("(pointer: coarse)").matches ? "browser" : "whisper");
+let activeEngine = engine();
+
+function getWorker() {
+  if (worker) return worker;
+  worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], { type: "text/javascript" })));
+  worker.onmessage = ({ data: m }) => {
+    if (m.type === "progress" && m.p.status === "progress" && m.p.total) {
+      wFiles.set(m.p.file, [m.p.loaded, m.p.total]);
+      let a = 0, b = 0; wFiles.forEach(([l, tot]) => { a += l; b += tot });
+      modelStatus(t("modelLoading")(Math.floor(a / b * 100)));
+    } else if (m.type === "ready") {
+      wReady = true; wDevice = m.device; wLoadErr = false; modelStatus(t("modelReady")(m.device));
+    } else if (m.type === "text") {
+      wQueue--; whisperText(m.text, m.sid); stateUpdate();
+    } else if (m.type === "error") {
+      if (m.id != null) wQueue--;
+      if (m.load || !wReady) { if (!wLoadErr) toast(t("modelErr"), true); wLoadErr = true; modelStatus(t("modelErr")) }
+      else toast(t("whisperErr")(m.message), true);
+      stateUpdate();
+    }
+  };
+  // The worker itself failed (e.g. the library couldn't be downloaded): drop it and the waiting parts
+  worker.onerror = e => {
+    e.preventDefault?.();
+    if (!wLoadErr) toast(t("modelErr"), true);
+    wLoadErr = true; wReady = false; wQueue = 0;
+    try { worker.terminate() } catch {} worker = null;
+    modelStatus(t("modelErr")); stateUpdate();
+  };
+  return worker;
+}
+function loadModel() { wReady = false; wFiles.clear(); modelStatus(t("modelLoading")(0)); getWorker().postMessage({ type: "load", model: MODELS[activeModel()] }) }
+function whisperText(text, sid) {
+  const target = sessions.find(s => s.id === sid); if (!target) return;
+  const clean = text.replace(/\[[^\]]*\]|\([^)]*musi[ck][^)]*\)|\*[^*]*\*/gi, " ").replace(/\s+/g, " ").trim();
+  if (HALLU_RX.test(clean)) return;
+  // Whisper writes punctuation, so split the text into sentences
+  const parts = clean.match(/[^.!?…]+[.!?…]*["“”»«']?/g) || [clean];
+  const prev = cur; cur = target;
+  parts.map(s => s.trim()).filter(s => s.length > 1 && !HALLU_RX.test(s)).forEach(s => addLine(s));
+  cur = prev; if (cur !== target) save();
+}
+function rms(d) { let s = 0; for (let i = 0; i < d.length; i++) s += d[i] * d[i]; return Math.sqrt(s / d.length) }
+function resample(data, from) {
+  if (from === 16000) return data;
+  const ratio = from / 16000, out = new Float32Array(Math.floor(data.length / ratio));
+  for (let i = 0; i < out.length; i++) { const x = i * ratio, j = Math.floor(x), f = x - j; out[i] = data[j] * (1 - f) + (data[j + 1] ?? data[j]) * f }
+  return out;
+}
+// Send the collected audio to Whisper; pure silence is dropped so Whisper has nothing to invent
+function flushAudio(force) {
+  const a = audio; if (!a || !a.len) return;
+  const merged = new Float32Array(a.len); let o = 0; a.parts.forEach(p => { merged.set(p, o); o += p.length });
+  const speechSec = a.speech;
+  a.parts = []; a.len = 0; a.speech = 0; a.silent = 0;
+  if (speechSec < 0.6 && !force) return;
+  if (speechSec < 0.3) return;
+  const pcm = resample(merged, a.rate);
+  wQueue++; stateUpdate();
+  getWorker().postMessage({ type: "run", id: ++wChunk, sid: cur.id, model: MODELS[activeModel()], language: lang === "de-DE" ? "german" : "english", audio: pcm }, [pcm.buffer]);
+}
+async function startWhisper() {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+  let ctx; try { ctx = new AudioContext({ sampleRate: 16000 }) } catch { ctx = new AudioContext() }
+  const src = ctx.createMediaStreamSource(stream);
+  const proc = ctx.createScriptProcessor(4096, 1, 1);
+  audio = { stream, ctx, proc, rate: ctx.sampleRate, parts: [], len: 0, speech: 0, silent: 0, floor: 0.01 };
+  proc.onaudioprocess = e => {
+    const a = audio; if (!a || !want) return;
+    const d = new Float32Array(e.inputBuffer.getChannelData(0));
+    const dur = d.length / a.rate, r = rms(d);
+    // Adaptive noise floor: speech is clearly louder than the room's background
+    a.floor = r < a.floor ? r : a.floor * 0.995 + r * 0.005;
+    const talking = r > Math.max(0.006, a.floor * 2.5);
+    if (talking) { a.speech += dur; a.silent = 0; level = Math.min(1, r * 25) } else a.silent += dur;
+    a.parts.push(d); a.len += d.length;
+    const sec = a.len / a.rate;
+    // Cut at a natural pause after a few seconds, or at the latest after 25 seconds
+    if ((sec > 5 && a.silent > 0.7) || sec > 25) flushAudio(false);
+  };
+  src.connect(proc); proc.connect(ctx.destination);
+  if (!wReady && !wLoadErr) loadModel();
+}
+function stopWhisper() {
+  if (!audio) return;
+  flushAudio(true);
+  try { audio.proc.disconnect(); audio.stream.getTracks().forEach(tr => tr.stop()); audio.ctx.close() } catch {}
+  audio = null;
+}
+function modelStatus(msg) { $("modelStatus").textContent = msg; if (want || wQueue) stateUpdate(msg) }
+function stateUpdate(extra) {
+  const s = $("state");
+  if (want && activeEngine === "whisper" && !wReady && !wLoadErr) s.textContent = extra && /%/.test(extra) ? extra : t("modelLoading")(0);
+  else if (want) s.textContent = t("listening") + (activeEngine === "whisper" && wQueue ? " · " + t("converting")(wQueue).trim() : "");
+  else if (wQueue) s.textContent = t("finishing");
+  else s.textContent = t("idle");
+  if (activeEngine === "whisper") $("interim").textContent = wQueue ? t("converting")(wQueue) : "";
+}
+const busy = () => want || wQueue > 0;
+
+async function start() {
+  activeEngine = engine();
+  if (activeEngine === "whisper" && !navigator.mediaDevices?.getUserMedia) return toast(t("noMic"), true);
+  if (activeEngine === "browser" && !SR) return toast(t("noSR"), true);
+  if (wQueue && activeEngine === "whisper") return toast(t("waitConvert"));
+  want = true; startedAt = Date.now();
+  if (activeEngine === "whisper") {
+    try { await startWhisper() }
+    catch (e) { want = false; return toast(e?.name === "NotAllowedError" ? t("blocked") : t("noMic"), true) }
+  } else { rec = rec || makeRec(); rec.lang = lang; try { rec.start() } catch {} }
+  document.body.classList.add("on"); applyUI(); setTab("doc");
+  tick = setInterval(() => { $("timer").textContent = fmt(now()) }, 500);
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) requestAnimationFrame(animate);
+  try { wakeLock = await navigator.wakeLock?.request("screen") } catch {}
+}
+function stop() {
+  if (want) { cur.elapsed += Date.now() - startedAt; save() }
+  if (activeEngine === "whisper") stopWhisper();
+  want = false; clearInterval(tick);
+  try { rec && rec.stop() } catch {}
+  document.body.classList.remove("on"); applyUI(); animate();
+  try { wakeLock && wakeLock.release() } catch {} wakeLock = null;
+}
+document.addEventListener("visibilitychange", async () => {
+  if (document.visibilityState === "visible" && want) try { wakeLock = await navigator.wakeLock?.request("screen") } catch {}
+});
+
+/* ---------- Claude ---------- */
+function plain() {
+  return `${cur.title} (${cur.lang})\n\n` + cur.lines.map(l => `${l.star ? "★ " : ""}${l.own ? "[My note] " : ""}${l.text}`).join("\n");
+}
+function claudePrompt(out) {
+  const L = out === "de" ? "German (Deutsch)" : "English";
+  const terms = parseGloss(glossText).map(g => g.right);
+  return `Turn this raw lecture transcript into clean study notes in ${L}.
+
+It comes from browser speech recognition, so it has no punctuation and some misheard words: fix them from context, but don't invent anything that wasn't said.
+Lines with ★ were marked important by me: keep those points and mark them with ★.
+Lines with [My note] are my own notes: include them where they fit.
+${terms.length ? "Correct spellings of technical terms in this course: " + terms.join(", ") + "\n" : ""}
+Write Markdown with these sections:
+1. A 2-3 sentence summary
+2. Structured notes with headings and bullet points (keep every number, date, name and definition)
+3. Key terms with short definitions
+4. Exam hints, homework and deadlines (write "none" if there are none)
+5. 5-10 study cards as "Q: … / A: …"
+
+Transcript:
+"""
+${plain()}
+"""`;
+}
+async function generateNotes(out) {
+  const key = pref.get("mitschrift.apikey");
+  if (!key) return openSettings();
+  if (!cur.lines.length) return toast(t("noLines"));
+  const started = Date.now();
+  gen = { ctl: new AbortController(), text: "" };
+  cur.aiError = ""; cur.aiInfo = ""; editingMd = false; renderNotes();
+  let usageIn = 0, usageOut = 0, stopReason = null, raf = 0;
+  const paint = () => { raf = 0; const b = $("aiBody"); if (!b || !gen) return; b.className = "ai-body md"; b.innerHTML = mdToHtml(gen.text); const s = $("aiStatus"); if (s) s.textContent = t("writing") };
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST", signal: gen.ctl.signal,
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": key,
+        "anthropic-version": "2026-10-21",
+        "anthropic-beta": "server-side-fallback-2026-07-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: MODEL, max_tokens: 32000, stream: true,
+        output_config: { effort: "medium" },
+        fallbacks: "default",
+        messages: [{ role: "user", content: claudePrompt(out) }]
+      })
+    });
+    if (!res.ok) {
+      const j = await res.json().catch(() => null);
+      throw { status: res.status, message: j?.error?.message || res.statusText };
+    }
+    // Server-sent events: collect text deltas, usage and the stop reason
+    const reader = res.body.getReader(), dec = new TextDecoder();
+    let buf = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let cut;
+      while ((cut = buf.indexOf("\n\n")) >= 0) {
+        const chunk = buf.slice(0, cut); buf = buf.slice(cut + 2);
+        const data = chunk.split("\n").filter(s => s.startsWith("data:")).map(s => s.slice(5).trim()).join("");
+        if (!data) continue;
+        let ev; try { ev = JSON.parse(data) } catch { continue }
+        if (ev.type === "message_start") usageIn = ev.message?.usage?.input_tokens || 0;
+        else if (ev.type === "content_block_delta" && ev.delta?.type === "text_delta") { gen.text += ev.delta.text; if (!raf) raf = requestAnimationFrame(paint) }
+        else if (ev.type === "message_delta") { stopReason = ev.delta?.stop_reason || stopReason; usageOut = ev.usage?.output_tokens || usageOut }
+        else if (ev.type === "error") throw { status: 0, message: ev.error?.message || "stream error", type: ev.error?.type };
+      }
+    }
+    if (stopReason === "refusal") throw { status: 0, refusal: true };
+    if (gen.text.trim()) cur.summary = gen.text.trim();
+    const cost = (usageIn * PRICE_IN + usageOut * PRICE_OUT).toFixed(2);
+    cur.aiInfo = t("cost")(cost, Math.round((Date.now() - started) / 1000)) + (stopReason === "max_tokens" ? " · " + t("errCut") : "");
+  } catch (e) {
+    if (gen?.ctl.signal.aborted) cur.aiInfo = t("stopped");
+    else if (e?.refusal) cur.aiError = t("errRefusal");
+    else if (e?.status === 401 || e?.status === 403) cur.aiError = t("err401");
+    else if (e?.status === 400 && /credit|balance/i.test(e.message)) cur.aiError = t("errCredit");
+    else if (e?.status === 429) cur.aiError = t("err429");
+    else if (e?.status >= 500 || e?.type === "overloaded_error") cur.aiError = t("err5xx");
+    else if (e instanceof TypeError) cur.aiError = t("errNet");
+    else cur.aiError = t("errOther")(e?.message || String(e));
+    if (gen?.text.trim() && !cur.summary) cur.summary = gen.text.trim();
+  } finally {
+    cancelAnimationFrame(raf); gen = null; save(); if (tab === "notes") renderNotes();
+  }
+}
+async function testKey(key) {
+  // Listing models is free and confirms the key works from this browser
+  const res = await fetch("https://api.anthropic.com/v1/models?limit=1", {
+    headers: { "x-api-key": key, "anthropic-version": "2026-10-21", "anthropic-dangerous-direct-browser-access": "true" }
+  });
+  return res.ok ? "ok" : (res.status === 401 || res.status === 403) ? "bad" : "unknown";
+}
+function keyStatus(state) {
+  const has = !!pref.get("mitschrift.apikey");
+  state = state || (has ? (pref.get("mitschrift.keyok") === "1" ? "ok" : "saved") : "none");
+  const p = $("keyPill");
+  p.className = "pill" + (state === "ok" || state === "saved" ? " ok" : state === "bad" ? " err" : "");
+  p.textContent = state === "testing" ? t("keyTesting") : state === "bad" ? t("keyBad") : has ? t("keyOk") : t("keyNone");
+  $("keyDot").classList.toggle("on", has);
+  $("removeKey").hidden = !has;
+}
+async function sendToClaude(out) {
+  if (!cur.lines.length) return toast(t("noLines"));
+  const p = claudePrompt(out);
+  const url = "https://claude.ai/new?q=" + encodeURIComponent(p);
+  // Very long transcripts don't fit in a link: copy them and open an empty chat
+  if (url.length < 7000) { window.open(url, "_blank", "noopener"); toast(t("sentShort")) }
+  else { await copy(p, null); window.open("https://claude.ai/new", "_blank", "noopener"); toast(t("sentLong")) }
+}
+
+/* ---------- export ---------- */
+const escHtml = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// Small Markdown reader for Claude's answers: headings, lists, bold, italics
+function mdToHtml(md) {
+  const inline = s => escHtml(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/(^|[^*])\*([^*\s][^*]*?)\*/g, "$1<em>$2</em>").replace(/`([^`]+)`/g, "<code>$1</code>");
+  let out = "", list = "";
+  const close = () => { if (list) { out += `</${list}>`; list = "" } };
+  for (const raw of (md || "").split("\n")) {
+    const line = raw.trimEnd(); let m;
+    if ((m = line.match(/^(#{1,4})\s+(.*)/))) { close(); const n = Math.min(m[1].length + 1, 4); out += `<h${n}>${inline(m[2])}</h${n}>` }
+    else if ((m = line.match(/^\s*[-*•]\s+(.*)/))) { if (list !== "ul") { close(); out += "<ul>"; list = "ul" } out += `<li>${inline(m[1])}</li>` }
+    else if ((m = line.match(/^\s*\d+[.)]\s+(.*)/))) { if (list !== "ol") { close(); out += "<ol>"; list = "ol" } out += `<li>${inline(m[1])}</li>` }
+    else if (!line.trim() || /^-{3,}$/.test(line.trim())) close();
+    else { close(); out += `<p>${inline(line)}</p>` }
+  }
+  close(); return out;
+}
+function markdown() {
+  const d = new Date(cur.created).toLocaleDateString(ui);
+  let s = `# ${cur.title}\n\n_${d} · ${fmt(cur.elapsed)} · ${cur.lang}_\n\n`;
+  // Claude's notes when there are some, otherwise the quick notes
+  const notes = cur.summary?.trim() || quickMd(quickNotes(cur.lines)).trim();
+  if (notes) s += notes + "\n\n---\n\n";
+  return s + cur.lines.map(l => l.own ? `> ${l.text}` : l.star ? `**${ended(l.text)}**` : ended(l.text)).join("\n\n") + "\n";
+}
+function exportHtml() {
+  const speech = cur.lines.filter(l => !l.own);
+  const block = (title, items, cls = "") => items.length ? `<h2>${escHtml(title)}</h2><ul class="${cls}">${items.map(l => `<li>${escHtml(l.own ? l.text : ended(l.text))}</li>`).join("")}</ul>` : "";
+  let paras = "", p = [], count = 0, lastT = -1e9;
+  const flush = () => { if (p.length) paras += `<p>${p.join(" ")}</p>`; p = []; count = 0 };
+  cur.lines.forEach(l => {
+    if (l.own) { flush(); paras += `<p class="note">${escHtml(l.text)}</p>`; return }
+    if (count >= 6 || l.t - lastT > 15000) flush();
+    const s = escHtml(ended(l.text)); p.push(l.star ? `<mark>${s}</mark>` : s); count++; lastT = l.t;
+  });
+  flush();
+  const date = new Date(cur.created).toLocaleDateString(ui, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  return `<h1>${escHtml(cur.title)}</h1>
+<p class="meta">${escHtml(date)} · ${fmt(cur.elapsed)} · ${cur.lang === "de-DE" ? "Deutsch" : "English"}</p>
+<div class="sum">${mdToHtml(cur.summary?.trim() || quickMd(quickNotes(cur.lines)))}</div>
+${block(t("hl"), cur.lines.filter(l => l.star), "hl")}
+${block(t("todo"), speech.filter(l => TODO_RX.test(l.text)))}
+${paras ? `<h2>${escHtml(t("tabDoc"))}</h2>${paras}` : ""}`;
+}
+const EXPORT_CSS = `
+  @page { margin: 18mm 16mm }
+  body { font-family: Calibri, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 11pt; line-height: 1.55; color: #17181b; -webkit-print-color-adjust: exact; print-color-adjust: exact }
+  h1 { font-size: 22pt; margin: 0 0 2pt; line-height: 1.2; letter-spacing: -.01em }
+  h2 { font-size: 13.5pt; margin: 18pt 0 6pt; padding-bottom: 3pt; border-bottom: 1px solid #d6d5d0 }
+  h3, h4 { font-size: 11.5pt; margin: 12pt 0 4pt }
+  p { margin: 0 0 8pt } ul, ol { margin: 0 0 8pt; padding-left: 18pt } li { margin: 0 0 3pt }
+  .meta { color: #676a72; font-size: 9.5pt; margin-bottom: 12pt }
+  mark { background: #fbe7bd; color: #17181b }
+  ul.hl li { background: #fbe7bd; list-style: none; margin-left: -18pt; padding: 2pt 6pt }
+  p.note { color: #23417f; background: #eaf0fd; border-left: 3px solid #3a6fe0; padding: 4pt 8pt }
+  code { font-family: Consolas, monospace }`;
+function exportWord() {
+  if (!cur.lines.length && !cur.summary) return toast(t("noLines"));
+  // Word opens HTML saved as .doc, with formatting, and so do Pages and Google Docs
+  const doc = `﻿<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8"><title>${escHtml(cur.title)}</title><style>${EXPORT_CSS}</style></head><body>${exportHtml()}</body></html>`;
+  download(safeName() + ".doc", doc, "application/msword");
+  toast(t("wordDone"));
+}
+function exportPdf() {
+  if (!cur.lines.length && !cur.summary) return toast(t("noLines"));
+  // Print a clean copy in a hidden frame; the print window offers "Save as PDF"
+  const f = document.createElement("iframe");
+  f.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0";
+  f.srcdoc = `<!doctype html><html lang="${ui}"><head><meta charset="utf-8"><title>${escHtml(cur.title)}</title><style>${EXPORT_CSS}</style></head><body>${exportHtml()}</body></html>`;
+  f.onload = () => { try { f.contentWindow.focus(); f.contentWindow.print() } catch {} setTimeout(() => f.remove(), 60000) };
+  document.body.append(f);
+  toast(t("pdfHint"));
+}
+function download(name, text, type) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name;
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+const safeName = () => cur.title.replace(/[^\p{L}\p{N} _-]+/gu, "").trim().replace(/\s+/g, "-") || "mitschrift";
+async function copy(text, ok) {
+  try { await navigator.clipboard.writeText(text) }
+  catch { const ta = el("textarea"); ta.value = text; document.body.append(ta); ta.select(); try { document.execCommand("copy") } catch {} ta.remove() }
+  if (ok) toast(ok);
+}
+
+/* ---------- drawer & settings ---------- */
+function closeDrawer() { $("sidebar").classList.remove("open"); $("backdrop").classList.remove("show") }
+function openSettings() { closeDrawer(); $("apiKey").value = pref.get("mitschrift.apikey") || ""; keyStatus(); $("settings").showModal() }
+
+/* ---------- wiring ---------- */
+function markLast() {
+  const l = [...cur.lines].reverse().find(x => !x.own); if (!l) return toast(t("nothing"));
+  l.star = true; save(); renderDoc(); toast(t("marked"));
+}
+$("recBtn").onclick = () => want ? stop() : start();
+$("markBtn").onclick = markLast;
+$("newBtn").onclick = newSession;
+$("menuBtn").onclick = () => { $("sidebar").classList.add("open"); $("backdrop").classList.add("show") };
+$("backdrop").onclick = closeDrawer;
+document.querySelectorAll("[data-open-settings]").forEach(b => b.onclick = openSettings);
+$("closeSettings").onclick = () => $("settings").close();
+$("settings").addEventListener("click", e => { if (e.target === $("settings")) $("settings").close() });
+document.querySelectorAll("[data-lang]").forEach(b => b.onclick = () => setLang(b.dataset.lang));
+document.querySelectorAll("[data-ui]").forEach(b => b.onclick = () => { ui = b.dataset.ui; pref.set("mitschrift.ui", ui); applyUI() });
+document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => setTab(b.dataset.tab));
+document.addEventListener("keydown", e => {
+  if (e.target.matches("input, textarea, select") || e.target.isContentEditable || $("settings").open) return;
+  if (e.key === "m" || e.key === "M") markLast();
+});
+$("noteForm").onsubmit = e => { e.preventDefault(); addLine($("noteInput").value, true); $("noteInput").value = "" };
+$("title").oninput = () => { cur.title = $("title").value || t("untitled"); save(); renderLib() };
+
+$("saveKey").onclick = async () => {
+  const k = $("apiKey").value.trim(); if (!k) return;
+  pref.set("mitschrift.apikey", k); pref.set("mitschrift.keyok", null); keyStatus("testing");
+  try {
+    const r = await testKey(k);
+    if (r === "bad") { keyStatus("bad"); return toast(t("err401"), true) }
+    if (r === "ok") pref.set("mitschrift.keyok", "1");
+    keyStatus(); toast(t("keySaved")); if (tab === "notes") renderNotes();
+  } catch { keyStatus(); toast(t("errNet"), true) }
+};
+$("removeKey").onclick = () => { pref.set("mitschrift.apikey", null); pref.set("mitschrift.keyok", null); $("apiKey").value = ""; keyStatus(); toast(t("keyRemoved")); if (tab === "notes") renderNotes() };
+function engineUI() {
+  const e = engine();
+  document.querySelectorAll("[data-engine]").forEach(b => { b.setAttribute("aria-pressed", String(b.dataset.engine === e)); b.disabled = want });
+  $("engP").textContent = e === "whisper" ? t("engPWhisper") : t("engPBrowser");
+  $("modelRow").hidden = e !== "whisper";
+  $("modelStatus").hidden = e !== "whisper";
+  $("engPill").textContent = e === "whisper" ? "Whisper" : "Browser";
+  $("modelSel").value = activeModel(); $("modelSel").disabled = want;
+  if (!$("modelStatus").textContent) $("modelStatus").textContent = t("modelIdle");
+}
+document.querySelectorAll("[data-engine]").forEach(b => b.onclick = () => { pref.set("mitschrift.engine", b.dataset.engine); engineUI() });
+$("modelSel").onchange = () => { pref.set("mitschrift.model", $("modelSel").value); wReady = false; wLoadErr = false; $("modelStatus").textContent = t("modelIdle") };
+$("loadModel").onclick = () => { wLoadErr = false; loadModel() };
+$("glossBox").value = glossText;
+$("glossBox").oninput = () => { glossText = $("glossBox").value; pref.set("mitschrift.glossary", glossText); buildRules() };
+$("learnBox").checked = pref.get("mitschrift.learn") !== "0";
+$("learnBox").onchange = () => pref.set("mitschrift.learn", $("learnBox").checked ? "1" : "0");
+$("glossApply").onclick = () => { const n = fixLecture(); save(); renderDoc(); toast(t("glossDone")(n)) };
+window.addEventListener("beforeunload", e => { if (want) { e.preventDefault(); e.returnValue = "" } });
+
+if (sessions.length) { cur = sessions[0]; lang = cur.lang || "de-DE" }
+applyUI();
+if (!cur) newSession();
+setLang(cur.lang || lang);
+renderAll(); animate();
+if (!SR) toast(t("noSR"), true);
+</script>
+</body>
+</html>
