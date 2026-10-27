@@ -138,6 +138,10 @@ main { min-width: 0; padding-left: max(16px, env(safe-area-inset-left)); padding
 .addnote { display: flex; gap: 8px; margin-top: 18px; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface) }
 .addnote input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 6px 8px; outline: none }
 .hint { color: var(--faint); font-size: 12.5px; margin-top: 14px }
+.audiobar { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; margin: 0 0 20px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 13.5px; color: var(--muted) }
+.audiobar .grow { flex: 1 }
+.progress { flex-basis: 100%; height: 4px; border-radius: 4px; background: var(--surface-2); overflow: hidden }
+.progress i { display: block; height: 100%; width: 0; background: var(--ink); transition: width .3s }
 
 /* notes view */
 .notes { display: grid; gap: 18px }
@@ -281,6 +285,7 @@ dialog::backdrop { background: rgba(10, 12, 16, .45); backdrop-filter: blur(2px)
       </nav>
 
       <section id="v-doc">
+        <div class="audiobar" id="audiobar" hidden></div>
         <div class="empty" id="empty"><b data-t="emptyH"></b><span data-t="emptyP"></span></div>
         <div class="doc" id="doc"></div>
         <div id="interim" aria-live="polite"></div>
@@ -306,6 +311,7 @@ dialog::backdrop { background: rgba(10, 12, 16, .45); backdrop-filter: blur(2px)
         <button type="button" data-engine="browser" aria-pressed="false" data-t="engBrowser"></button>
       </div>
       <p id="engP"></p>
+      <div id="whisperOpts" style="display:grid;gap:10px">
       <div class="field" id="modelRow">
         <select class="btn" id="modelSel" aria-label="Whisper model">
           <option value="tiny" data-t="mTiny"></option>
@@ -315,6 +321,15 @@ dialog::backdrop { background: rgba(10, 12, 16, .45); backdrop-filter: blur(2px)
         <button class="btn" type="button" id="loadModel" data-t="loadModel"></button>
       </div>
       <p class="learned" id="modelStatus"></p>
+      <label class="label" for="refineSel" data-t="refineModelL"></label>
+      <div class="field">
+        <select class="btn" id="refineSel">
+          <option value="large" data-t="rLarge"></option>
+          <option value="small" data-t="rSmall"></option>
+        </select>
+      </div>
+      <label class="check"><input type="checkbox" id="saveAudioBox"><span data-t="saveAudioL"></span></label>
+      </div>
     </div>
     <div class="set">
       <h3><span data-t="keyH"></span><span class="pill" id="keyPill"></span></h3>
@@ -393,7 +408,14 @@ const T = {
     modelReady: d => `Modell bereit · läuft auf ${d === "webgpu" ? "der Grafikkarte (schnell)" : "dem Prozessor (langsamer)"}`,
     modelErr: "Das Modell konnte nicht geladen werden. Prüfe die Internetverbindung und lade die Seite neu.",
     converting: n => `Wird umgewandelt … ${n > 1 ? `(${n} Abschnitte)` : ""}`, finishing: "Wird fertig umgewandelt …", whisperErr: m => "Whisper-Fehler: " + m,
-    noMic: "Kein Mikrofon gefunden, oder dieser Browser kann nicht aufnehmen.", waitConvert: "Einen Moment, die Aufnahme wird noch umgewandelt."
+    noMic: "Kein Mikrofon gefunden, oder dieser Browser kann nicht aufnehmen.", waitConvert: "Einen Moment, die Aufnahme wird noch umgewandelt.",
+    refine: "Genauer umwandeln", audioSaved: mb => `Audio gespeichert · ${mb} MB`, refining: (d, n) => `Wird genauer umgewandelt … ${d} von ${n} Abschnitten`,
+    refineLoading: p => `Genaues Modell wird geladen … ${p} %`, refineDone: "Fertig: Die Mitschrift wurde mit dem genauen Modell neu geschrieben.",
+    refinedPill: "Genau umgewandelt", delAudio: "Audio löschen", delAudioQ: "Audio dieser Vorlesung löschen? Der Text bleibt erhalten.", audioDeleted: "Audio gelöscht.",
+    listen: "Anhören", editHint: "Satz bearbeiten: Enter speichert, Esc bricht ab.", noAudio: "Für diese Stelle ist kein Audio gespeichert.",
+    refineLoadErr: "Das genaue Modell konnte nicht geladen werden. Wähle in den Einstellungen „Small“ für „Genauer umwandeln“.",
+    refineModelL: "Modell für „Genauer umwandeln“", rLarge: "Large Turbo · ca. 1 GB · am genauesten, braucht eine Grafikkarte", rSmall: "Small · ca. 250 MB · für schwächere Laptops",
+    saveAudioL: "Audio speichern, damit du Stellen nachhören und die Vorlesung danach genauer umwandeln kannst (ca. 2 MB pro Minute, nur in diesem Browser)."
   },
   en: {
     new: "New lecture", library: "Lectures", settings: "Settings", mark: "Highlight", rec: "Record", stop: "Stop",
@@ -440,7 +462,14 @@ const T = {
     modelReady: d => `Model ready · running on ${d === "webgpu" ? "the graphics card (fast)" : "the processor (slower)"}`,
     modelErr: "The model couldn't be loaded. Check your internet connection and reload the page.",
     converting: n => `Converting … ${n > 1 ? `(${n} parts)` : ""}`, finishing: "Finishing conversion …", whisperErr: m => "Whisper error: " + m,
-    noMic: "No microphone found, or this browser can't record.", waitConvert: "One moment, the recording is still being converted."
+    noMic: "No microphone found, or this browser can't record.", waitConvert: "One moment, the recording is still being converted.",
+    refine: "Convert more accurately", audioSaved: mb => `Audio saved · ${mb} MB`, refining: (d, n) => `Converting more accurately … ${d} of ${n} parts`,
+    refineLoading: p => `Loading the accurate model … ${p} %`, refineDone: "Done: the transcript was rewritten with the accurate model.",
+    refinedPill: "Accurately converted", delAudio: "Delete audio", delAudioQ: "Delete this lecture's audio? The text stays.", audioDeleted: "Audio deleted.",
+    listen: "Listen", editHint: "Editing: Enter saves, Esc cancels.", noAudio: "No audio is saved for this part.",
+    refineLoadErr: "The accurate model couldn't be loaded. Choose “Small” for “Convert more accurately” in Settings.",
+    refineModelL: "Model for “Convert more accurately”", rLarge: "Large Turbo · about 1 GB · most accurate, needs a graphics card", rSmall: "Small · about 250 MB · for weaker laptops",
+    saveAudioL: "Save audio so you can listen back and convert the lecture more accurately afterwards (about 2 MB per minute, in this browser only)."
   }
 };
 // Phrases that usually mean "exam", "homework" or "deadline"
@@ -473,25 +502,26 @@ const ended = s => /[.!?…:;]$/.test(s) ? s : s + ".";
 function toast(msg, err, action) {
   const x = $("toast"); $("toastMsg").textContent = msg; x.classList.toggle("err", !!err); x.classList.add("show");
   const a = $("toastAct"); a.hidden = !action;
-  if (action) { a.textContent = action.label; a.onclick = () => { action.run(); x.classList.remove("show") } }
+  if (action) { a.textContent = action.label; a.onmousedown = e => e.preventDefault(); a.onclick = () => { action.run(); x.classList.remove("show") } }
   clearTimeout(toast.h); toast.h = setTimeout(() => x.classList.remove("show"), action ? 7000 : err ? 5500 : 2600);
 }
 
 /* ---------- sessions ---------- */
 function newSession() {
   if (want) return toast(t("stopFirst"));
-  if (wQueue) return toast(t("waitConvert"));
+  if (wQueue || refine) return toast(t("waitConvert"));
   const d = new Date();
   cur = { id: String(Date.now()), title: `${t("untitled")} · ${d.toLocaleDateString(ui)}`, lang, created: d.toISOString(), elapsed: 0, lines: [] };
   sessions.unshift(cur); save(); closeDrawer(); setTab("doc"); renderAll(); $("title").select();
 }
 function pick(id) {
   if (want) return toast(t("stopFirst"));
-  if (wQueue) return toast(t("waitConvert"));
+  if (wQueue || refine) return toast(t("waitConvert"));
   cur = sessions.find(s => s.id === id) || sessions[0]; setLang(cur.lang || "de-DE"); editingMd = false; closeDrawer(); renderAll();
 }
 function removeSession(id) {
   sessions = sessions.filter(s => s.id !== id); save(); toast(t("deleted"));
+  audioDelete(id).catch(() => {});
   if (!sessions.length) return newSession();
   if (cur.id === id) cur = sessions[0];
   renderAll();
@@ -512,7 +542,7 @@ function applyUI() {
 function renderAll() {
   $("title").value = cur.title;
   $("timer").textContent = fmt(now());
-  renderDoc();
+  renderDoc(); renderAudioBar();
   if (tab === "notes") renderNotes();
 }
 function renderMeta() {
@@ -568,6 +598,7 @@ function lineSpan(l) {
 }
 function editSpan(s, l) {
   editing = true;
+  if (l.c != null && cur.audio) toast(t("editHint"), false, { label: "▶ " + t("listen"), run: () => playChunk(cur.id, l.c) });
   s.textContent = l.text; s.contentEditable = "true"; s.classList.add("editing"); s.focus();
   const r = document.createRange(); r.selectNodeContents(s); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
   let done = false;
@@ -582,14 +613,14 @@ function editSpan(s, l) {
   s.onkeydown = e => { e.stopPropagation(); if (e.key === "Enter") { e.preventDefault(); finish(true) } else if (e.key === "Escape") { e.preventDefault(); finish(false) } };
   s.onblur = () => finish(true);
 }
-function addLine(text, own) {
+function addLine(text, own, extra) {
   text = text.replace(/\s+/g, " ").trim(); if (!text) return;
   if (!own) {
     text = fixText(text)[0];
     // Speech recognition returns lowercase without punctuation: capitalize the first letter
     text = text.charAt(0).toUpperCase() + text.slice(1);
   }
-  cur.lines.push({ t: now(), text, star: false, own: !!own }); save();
+  cur.lines.push({ t: now(), text, star: false, own: !!own, ...extra }); save();
   renderDoc();
   if (want && tab === "doc") $("interim").scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
@@ -920,34 +951,39 @@ function makeRec() {
 }
 /* ---------- Whisper: records audio and converts it to text on this device ---------- */
 const TJS = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/transformers.min.js";
-const MODELS = { tiny: "onnx-community/whisper-tiny", base: "onnx-community/whisper-base", small: "onnx-community/whisper-small" };
+const MODELS = { tiny: "onnx-community/whisper-tiny", base: "onnx-community/whisper-base", small: "onnx-community/whisper-small", large: "onnx-community/whisper-large-v3-turbo" };
 // Runs in a background worker so the page stays smooth; jobs run one after another in arrival order
 // (a classic worker with a dynamic import also works when the page is opened as a local file)
 const WORKER_SRC = `
-let asr = null, key = "", device = "";
+let asr = null, key = "";
 async function load(model) {
   if (asr && key === model) return;
+  // Only one model in memory at a time: the big one needs all the room it can get
+  if (asr) { try { await asr.dispose() } catch (e) {} asr = null; key = "" }
   const { pipeline } = await import("${TJS}");
   const progress_callback = p => self.postMessage({ type: "progress", p });
-  const tries = self.navigator.gpu ? ["webgpu", "wasm"] : ["wasm"];
+  const big = model.includes("large");
+  const tries = self.navigator.gpu
+    ? [["webgpu", { encoder_model: big ? "fp16" : "fp32", decoder_model_merged: "q4" }], ["webgpu", { encoder_model: "fp32", decoder_model_merged: "q4" }], ["wasm", "q8"]]
+    : [["wasm", "q8"]];
   let err;
-  for (const d of tries) {
+  for (const [d, dtype] of tries) {
     try {
-      const dtype = d === "webgpu" ? { encoder_model: "fp32", decoder_model_merged: "q4" } : "q8";
       asr = await pipeline("automatic-speech-recognition", model, { device: d, dtype, progress_callback });
-      key = model; device = d; self.postMessage({ type: "ready", device: d }); return;
+      key = model; self.postMessage({ type: "ready", device: d, model }); return;
     } catch (e) { err = e }
   }
   throw err;
 }
 async function handle(m) {
+  const echo = { id: m.id, sid: m.sid, k: m.k, t: m.t, refine: m.refine };
   try {
     await load(m.model);
     if (m.type === "run") {
       const out = await asr(m.audio, { language: m.language, task: "transcribe", chunk_length_s: 30, stride_length_s: 5 });
-      self.postMessage({ type: "text", id: m.id, sid: m.sid, text: out.text || "" });
+      self.postMessage({ type: "text", ...echo, text: out.text || "" });
     }
-  } catch (e) { self.postMessage({ type: "error", id: m.id, load: m.type === "load", message: String(e && e.message || e) }) }
+  } catch (e) { self.postMessage({ type: "error", ...echo, load: m.type === "load", message: String(e && e.message || e) }) }
 }
 let chain = Promise.resolve();
 self.onmessage = e => { chain = chain.then(() => handle(e.data)) };
@@ -956,9 +992,12 @@ self.onmessage = e => { chain = chain.then(() => handle(e.data)) };
 const HALLU_RX = /^(untertitel|untertitelung|vielen dank (fürs|für's|für das|für ihre) ?(zuschauen|zusehen|zuhören|aufmerksamkeit)|thank you( very much)? for watching|thanks for watching|copyright|bis zum nächsten mal)\b|^[\s.,!?…-]*$/i;
 
 let worker = null, wDevice = "", wReady = false, wQueue = 0, wChunk = 0, wFiles = new Map(), wLoadErr = false;
-let audio = null; // { stream, ctx, proc, rate, parts, len, speech, silent, floor }
-const activeModel = () => MODELS[pref.get("mitschrift.model")] ? pref.get("mitschrift.model") : "base";
+let audio = null; // { stream, ctx, proc, rate, parts, talk, rms, len, silent, floor }
+let refine = null; // { sid, keys, i, model, loadPct }
+const activeModel = () => ["tiny", "base", "small"].includes(pref.get("mitschrift.model")) ? pref.get("mitschrift.model") : "base";
+const refineModel = () => ["large", "small"].includes(pref.get("mitschrift.refineModel")) ? pref.get("mitschrift.refineModel") : (navigator.gpu ? "large" : "small");
 const engine = () => pref.get("mitschrift.engine") || (matchMedia("(pointer: coarse)").matches ? "browser" : "whisper");
+const langName = l => l === "de-DE" ? "german" : "english";
 let activeEngine = engine();
 
 function getWorker() {
@@ -968,12 +1007,16 @@ function getWorker() {
     if (m.type === "progress" && m.p.status === "progress" && m.p.total) {
       wFiles.set(m.p.file, [m.p.loaded, m.p.total]);
       let a = 0, b = 0; wFiles.forEach(([l, tot]) => { a += l; b += tot });
-      modelStatus(t("modelLoading")(Math.floor(a / b * 100)));
+      const pct = Math.floor(a / b * 100);
+      if (refine) { refine.loadPct = pct; renderAudioBar() } else modelStatus(t("modelLoading")(pct));
     } else if (m.type === "ready") {
-      wReady = true; wDevice = m.device; wLoadErr = false; modelStatus(t("modelReady")(m.device));
+      wReady = m.model === MODELS[activeModel()]; wDevice = m.device; wLoadErr = false;
+      if (refine) { refine.loadPct = null; renderAudioBar() } else modelStatus(t("modelReady")(m.device));
     } else if (m.type === "text") {
-      wQueue--; whisperText(m.text, m.sid); stateUpdate();
+      if (m.refine) refineResult(m);
+      else { wQueue--; whisperText(m.text, m.sid, m.k, m.t); stateUpdate() }
     } else if (m.type === "error") {
+      if (m.refine) return refineFail(m);
       if (m.id != null) wQueue--;
       if (m.load || !wReady) { if (!wLoadErr) toast(t("modelErr"), true); wLoadErr = true; modelStatus(t("modelErr")) }
       else toast(t("whisperErr")(m.message), true);
@@ -984,23 +1027,146 @@ function getWorker() {
   worker.onerror = e => {
     e.preventDefault?.();
     if (!wLoadErr) toast(t("modelErr"), true);
-    wLoadErr = true; wReady = false; wQueue = 0;
+    wLoadErr = true; wReady = false; wQueue = 0; refine = null;
     try { worker.terminate() } catch {} worker = null;
-    modelStatus(t("modelErr")); stateUpdate();
+    modelStatus(t("modelErr")); stateUpdate(); renderAudioBar();
   };
   return worker;
 }
 function loadModel() { wReady = false; wFiles.clear(); modelStatus(t("modelLoading")(0)); getWorker().postMessage({ type: "load", model: MODELS[activeModel()] }) }
-function whisperText(text, sid) {
-  const target = sessions.find(s => s.id === sid); if (!target) return;
+// Whisper writes punctuation, so its text is split into sentences; known inventions are dropped
+function toSentences(text) {
   const clean = text.replace(/\[[^\]]*\]|\([^)]*musi[ck][^)]*\)|\*[^*]*\*/gi, " ").replace(/\s+/g, " ").trim();
-  if (HALLU_RX.test(clean)) return;
-  // Whisper writes punctuation, so split the text into sentences
-  const parts = clean.match(/[^.!?…]+[.!?…]*["“”»«']?/g) || [clean];
+  if (HALLU_RX.test(clean)) return [];
+  // Split only where a sentence mark is followed by a space, so "2.5" or "27.10." stay intact
+  return clean.split(/(?<=[.!?…]["“”»«']?)\s+/).map(s => s.trim()).filter(s => s.length > 1 && !HALLU_RX.test(s));
+}
+function whisperText(text, sid, k, tStart) {
+  const target = sessions.find(s => s.id === sid); if (!target) return;
   const prev = cur; cur = target;
-  parts.map(s => s.trim()).filter(s => s.length > 1 && !HALLU_RX.test(s)).forEach(s => addLine(s));
+  toSentences(text).forEach(s => addLine(s, false, { c: k, ...(tStart != null && { t: tStart }) }));
   cur = prev; if (cur !== target) save();
 }
+
+/* ---------- saved audio (IndexedDB): for listening back and for "Genauer umwandeln" ---------- */
+let dbP = null;
+const idb = () => dbP ??= new Promise((res, rej) => {
+  const r = indexedDB.open("mitschrift", 1);
+  r.onupgradeneeded = () => r.result.createObjectStore("audio", { keyPath: ["sid", "k"] });
+  r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+});
+async function audioTx(mode, fn) {
+  const db = await idb();
+  return new Promise((res, rej) => { const tx = db.transaction("audio", mode); const out = fn(tx.objectStore("audio")); tx.oncomplete = () => res(out?.result); tx.onerror = () => rej(tx.error) });
+}
+const range = sid => IDBKeyRange.bound([sid, -Infinity], [sid, Infinity]);
+const audioPut = rec => audioTx("readwrite", st => st.put(rec));
+const audioGet = (sid, k) => audioTx("readonly", st => st.get([sid, k]));
+const audioKeys = sid => audioTx("readonly", st => st.getAllKeys(range(sid)));
+const audioDelete = sid => audioTx("readwrite", st => st.delete(range(sid)));
+function toInt16(f) { const o = new Int16Array(f.length); for (let i = 0; i < f.length; i++) o[i] = Math.max(-1, Math.min(1, f[i])) * 32767; return o }
+function wavBlob(i16, rate) {
+  const b = new ArrayBuffer(44 + i16.byteLength), v = new DataView(b);
+  const w = (o, s) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  w(0, "RIFF"); v.setUint32(4, 36 + i16.byteLength, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true);
+  v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, i16.byteLength, true);
+  new Int16Array(b, 44).set(i16); return new Blob([b], { type: "audio/wav" });
+}
+let player = null;
+async function playChunk(sid, k) {
+  try {
+    const rec = await audioGet(sid, k); if (!rec) return toast(t("noAudio"));
+    if (player) { player.pause(); URL.revokeObjectURL(player.src) }
+    player = new Audio(URL.createObjectURL(wavBlob(new Int16Array(rec.pcm), rec.rate)));
+    await player.play();
+  } catch { toast(t("noAudio")) }
+}
+function storeChunk(s, k, tStart, pcm) {
+  if (pref.get("mitschrift.saveAudio") === "0") return;
+  const i16 = toInt16(pcm);
+  navigator.storage?.persist?.().catch(() => {});
+  audioPut({ sid: s.id, k, t: tStart, rate: 16000, pcm: i16.buffer })
+    .then(() => { s.audio = (s.audio || 0) + 1; s.audioBytes = (s.audioBytes || 0) + i16.byteLength; save(); if (s === cur) renderAudioBar() })
+    .catch(() => {});
+}
+
+/* ---------- second pass: convert the saved audio again with the large model ---------- */
+async function startRefine() {
+  if (want || wQueue) return toast(want ? t("stopFirst") : t("waitConvert"));
+  let keys = [];
+  try { keys = (await audioKeys(cur.id)).map(k => k[1]).sort((a, b) => a - b) } catch {}
+  if (!keys.length) return toast(t("noAudio"));
+  refine = { sid: cur.id, keys, i: 0, model: MODELS[refineModel()], lang: langName(cur.lang), loadPct: 0 };
+  wFiles.clear(); wReady = false; renderAudioBar(); nextRefine();
+}
+async function nextRefine() {
+  const r = refine; if (!r) return;
+  if (r.i >= r.keys.length) return finishRefine();
+  const rec = await audioGet(r.sid, r.keys[r.i]).catch(() => null);
+  if (refine !== r) return;
+  if (!rec) { r.i++; return nextRefine() }
+  const f = new Float32Array(rec.pcm.byteLength / 2), i16 = new Int16Array(rec.pcm);
+  for (let i = 0; i < f.length; i++) f[i] = i16[i] / 32768;
+  getWorker().postMessage({ type: "run", refine: true, sid: r.sid, k: rec.k, t: rec.t, model: r.model, language: r.lang, audio: f }, [f.buffer]);
+}
+function refineResult(m) {
+  if (!refine || m.sid !== refine.sid) return;
+  const s = sessions.find(x => x.id === m.sid);
+  if (s) replaceChunk(s, m.k, m.t, m.text);
+  refine.i++; refine.loadPct = null; renderAudioBar(); nextRefine();
+}
+function refineFail(m) {
+  if (!refine) return;
+  toast(m.load || refine.loadPct != null ? t("refineLoadErr") : t("whisperErr")(m.message), true);
+  refine = null; renderAudioBar();
+}
+function finishRefine() {
+  const s = sessions.find(x => x.id === refine.sid); if (s) { s.refined = true; save() }
+  refine = null; renderAudioBar(); toast(t("refineDone"));
+}
+// Swap the sentences of one audio part for the new, more accurate ones; highlights move to the most similar sentence
+function replaceChunk(s, k, tStart, text) {
+  const fresh = toSentences(text).map(x => { x = fixText(x)[0]; return { t: tStart ?? 0, text: x.charAt(0).toUpperCase() + x.slice(1), star: false, own: false, c: k } });
+  const first = s.lines.findIndex(l => l.c === k && !l.own);
+  const old = s.lines.filter(l => l.c === k && !l.own);
+  old.filter(l => l.star).forEach(o => {
+    const ow = new Set(words(o.text)); let best = null, bs = -1;
+    fresh.forEach(f => { const sc = words(f.text).filter(w => ow.has(w)).length; if (sc > bs) { bs = sc; best = f } });
+    if (best) best.star = true;
+  });
+  if (old.length) fresh.forEach(f => f.t = old[0].t);
+  const kept = s.lines.filter(l => !(l.c === k && !l.own));
+  let at = first >= 0 ? first : kept.findIndex(l => l.c != null ? l.c > k : l.t > (tStart ?? 0));
+  if (at < 0) at = kept.length;
+  kept.splice(at, 0, ...fresh);
+  s.lines = kept; save();
+  if (s === cur) renderDoc();
+}
+function renderAudioBar() {
+  const bar = $("audiobar"), s = cur; if (!bar || !s) return;
+  const mine = refine && refine.sid === s.id;
+  bar.hidden = !(mine || (s.audio || 0) > 0);
+  if (bar.hidden) return;
+  bar.replaceChildren();
+  if (mine) {
+    const busyLoad = refine.loadPct != null && refine.i === 0;
+    bar.append(el("span", null, busyLoad ? t("refineLoading")(refine.loadPct) : t("refining")(refine.i, refine.keys.length)), el("span", "grow"),
+      btn("btn", t("stopGen"), () => { refine = null; renderAudioBar(); toast(t("stopped")) }));
+    const p = el("div", "progress"), i = el("i"); i.style.width = (busyLoad ? refine.loadPct : refine.i / refine.keys.length * 100) + "%"; p.append(i); bar.append(p);
+    return;
+  }
+  const info = el("span", null, t("audioSaved")(((s.audioBytes || 0) / 1048576).toFixed(0)));
+  bar.append(info);
+  if (s.refined) bar.append(el("span", "pill ok", t("refinedPill")));
+  bar.append(el("span", "grow"), btn("btn primary", t("refine"), startRefine), btn("btn ghost", t("delAudio"), () => {
+    bar.replaceChildren(el("span", null, t("delAudioQ")), el("span", "grow"),
+      btn("btn danger", t("del"), async () => { await audioDelete(s.id).catch(() => {}); s.audio = 0; s.audioBytes = 0; save(); renderAudioBar(); toast(t("audioDeleted")) }),
+      btn("btn", t("keep"), renderAudioBar));
+  }));
+}
+
+/* ---------- live recording with Whisper ---------- */
 function rms(d) { let s = 0; for (let i = 0; i < d.length; i++) s += d[i] * d[i]; return Math.sqrt(s / d.length) }
 function resample(data, from) {
   if (from === 16000) return data;
@@ -1008,36 +1174,54 @@ function resample(data, from) {
   for (let i = 0; i < out.length; i++) { const x = i * ratio, j = Math.floor(x), f = x - j; out[i] = data[j] * (1 - f) + (data[j + 1] ?? data[j]) * f }
   return out;
 }
-// Send the collected audio to Whisper; pure silence is dropped so Whisper has nothing to invent
-function flushAudio(force) {
+// Send the collected audio to Whisper, keeping the last `keep` blocks for the next part.
+// Pure silence is dropped so Whisper has nothing to invent.
+function flushAudio(force, keep = 0) {
   const a = audio; if (!a || !a.len) return;
-  const merged = new Float32Array(a.len); let o = 0; a.parts.forEach(p => { merged.set(p, o); o += p.length });
-  const speechSec = a.speech;
-  a.parts = []; a.len = 0; a.speech = 0; a.silent = 0;
-  if (speechSec < 0.6 && !force) return;
-  if (speechSec < 0.3) return;
+  const n = a.parts.length - keep, blockSec = i => a.parts[i].length / a.rate;
+  let len = 0, speech = 0;
+  for (let i = 0; i < n; i++) { len += a.parts[i].length; if (a.talk[i]) speech += blockSec(i) }
+  const merged = new Float32Array(len); let o = 0;
+  for (let i = 0; i < n; i++) { merged.set(a.parts[i], o); o += a.parts[i].length }
+  a.parts = a.parts.slice(n); a.talk = a.talk.slice(n); a.rms = a.rms.slice(n);
+  a.len = a.parts.reduce((s, p) => s + p.length, 0); a.silent = 0;
+  if (speech < (force ? 0.3 : 0.6)) return;
   const pcm = resample(merged, a.rate);
+  const k = cur.nextChunk = (cur.nextChunk || 0) + 1;
+  const tStart = Math.max(0, now() - Math.round(pcm.length / 16));
+  storeChunk(cur, k, tStart, pcm);
   wQueue++; stateUpdate();
-  getWorker().postMessage({ type: "run", id: ++wChunk, sid: cur.id, model: MODELS[activeModel()], language: lang === "de-DE" ? "german" : "english", audio: pcm }, [pcm.buffer]);
+  getWorker().postMessage({ type: "run", id: ++wChunk, sid: cur.id, k, t: tStart, model: MODELS[activeModel()], language: langName(lang), audio: pcm }, [pcm.buffer]);
 }
 async function startWhisper() {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
   let ctx; try { ctx = new AudioContext({ sampleRate: 16000 }) } catch { ctx = new AudioContext() }
   const src = ctx.createMediaStreamSource(stream);
   const proc = ctx.createScriptProcessor(4096, 1, 1);
-  audio = { stream, ctx, proc, rate: ctx.sampleRate, parts: [], len: 0, speech: 0, silent: 0, floor: 0.01 };
+  audio = { stream, ctx, proc, rate: ctx.sampleRate, parts: [], talk: [], rms: [], len: 0, silent: 0, floor: 0.01 };
   proc.onaudioprocess = e => {
     const a = audio; if (!a || !want) return;
     const d = new Float32Array(e.inputBuffer.getChannelData(0));
     const dur = d.length / a.rate, r = rms(d);
-    // Adaptive noise floor: speech is clearly louder than the room's background
-    a.floor = r < a.floor ? r : a.floor * 0.995 + r * 0.005;
+    // Background-noise level of the room: follows quiet moments quickly, but barely moves while
+    // someone talks, so a long stretch of speech is never mistaken for silence
     const talking = r > Math.max(0.006, a.floor * 2.5);
-    if (talking) { a.speech += dur; a.silent = 0; level = Math.min(1, r * 25) } else a.silent += dur;
-    a.parts.push(d); a.len += d.length;
+    if (r < a.floor) a.floor = r;
+    else if (!talking) a.floor = a.floor * 0.97 + r * 0.03;
+    else a.floor *= 1.0005;
+    if (talking) { a.silent = 0; level = Math.min(1, r * 25) } else a.silent += dur;
+    a.parts.push(d); a.talk.push(talking); a.rms.push(r); a.len += d.length;
     const sec = a.len / a.rate;
-    // Cut at a natural pause after a few seconds, or at the latest after 25 seconds
-    if ((sec > 5 && a.silent > 0.7) || sec > 25) flushAudio(false);
+    // Cut at a natural pause after a few seconds
+    if (sec > 5 && a.silent > 0.7) flushAudio(false);
+    // Someone talks for 25 s without a pause: cut at the quietest moment of the last 3 s,
+    // which is almost always between two words, and carry the rest over to the next part
+    else if (sec > 25) {
+      const nB = a.parts.length, look = Math.min(nB - 1, Math.ceil(3 * a.rate / 4096));
+      let best = nB - 1, low = Infinity;
+      for (let i = nB - look; i < nB; i++) if (a.rms[i] < low) { low = a.rms[i]; best = i }
+      flushAudio(false, nB - 1 - best);
+    }
   };
   src.connect(proc); proc.connect(ctx.destination);
   if (!wReady && !wLoadErr) loadModel();
@@ -1057,7 +1241,7 @@ function stateUpdate(extra) {
   else s.textContent = t("idle");
   if (activeEngine === "whisper") $("interim").textContent = wQueue ? t("converting")(wQueue) : "";
 }
-const busy = () => want || wQueue > 0;
+const busy = () => want || wQueue > 0 || !!refine;
 
 async function start() {
   activeEngine = engine();
@@ -1330,12 +1514,14 @@ function engineUI() {
   const e = engine();
   document.querySelectorAll("[data-engine]").forEach(b => { b.setAttribute("aria-pressed", String(b.dataset.engine === e)); b.disabled = want });
   $("engP").textContent = e === "whisper" ? t("engPWhisper") : t("engPBrowser");
-  $("modelRow").hidden = e !== "whisper";
-  $("modelStatus").hidden = e !== "whisper";
+  $("whisperOpts").hidden = e !== "whisper";
+  $("refineSel").value = refineModel(); $("saveAudioBox").checked = pref.get("mitschrift.saveAudio") !== "0";
   $("engPill").textContent = e === "whisper" ? "Whisper" : "Browser";
   $("modelSel").value = activeModel(); $("modelSel").disabled = want;
   if (!$("modelStatus").textContent) $("modelStatus").textContent = t("modelIdle");
 }
+$("refineSel").onchange = () => pref.set("mitschrift.refineModel", $("refineSel").value);
+$("saveAudioBox").onchange = () => pref.set("mitschrift.saveAudio", $("saveAudioBox").checked ? "1" : "0");
 document.querySelectorAll("[data-engine]").forEach(b => b.onclick = () => { pref.set("mitschrift.engine", b.dataset.engine); engineUI() });
 $("modelSel").onchange = () => { pref.set("mitschrift.model", $("modelSel").value); wReady = false; wLoadErr = false; $("modelStatus").textContent = t("modelIdle") };
 $("loadModel").onclick = () => { wLoadErr = false; loadModel() };
