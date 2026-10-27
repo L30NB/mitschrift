@@ -1,0 +1,1446 @@
+!LLC
+!LLP
+!LP
+!PLC
+!Inc.
+!Ltd.
+!Corp.
+!GmbH
+!SEC
+!FTC
+!DOJ
+!FBI
+!IRS
+EEOC
+NLRB
+!OSHA
+!EPA
+!FCC
+!FDA
+CFPB
+FINRA
+USPTO
+WIPO
+!WTO
+ICJ
+!ICC
+ECHR
+ECJ
+CJEU
+UNCITRAL
+CISG
+UCC
+GDPR
+CCPA
+HIPAA
+FCPA
+!RICO
+!ADA
+FMLA
+FLSA
+ERISA
+!NDA
+!MOU
+LOI
+!SPA
+!APA
+!JV
+!IP
+ADR
+TRO
+!DUI
+DWI
+!AG
+!DA
+!JD
+LLM
+LSAT
+!SCOTUS
+!J.
+!C.J.
+!v.
+et al.
+!id.
+!ibid.
+!supra
+!infra
+!cf.
+!e.g.
+!i.e.
+!viz.
+stare decisis
+res judicata
+res ipsa loquitur
+mens rea
+actus reus
+habeas corpus
+prima facie
+pro bono
+pro se
+amicus curiae
+!certiorari
+writ of certiorari
+writ of mandamus
+!mandamus
+quo warranto
+ultra vires
+intra vires
+inter alia
+inter vivos
+mortis causa
+bona fide
+mala fide
+de facto
+de jure
+de minimis
+de novo
+ex parte
+ex post facto
+ex officio
+in camera
+in rem
+in personam
+in limine
+in absentia
+in loco parentis
+sui generis
+sub judice
+sine die
+nolo contendere
+obiter dictum
+ratio decidendi
+per curiam
+per se
+pro rata
+pro forma
+quid pro quo
+caveat emptor
+force majeure
+lex loci
+lex fori
+lex mercatoria
+locus standi
+pacta sunt servanda
+rebus sic stantibus
+jus cogens
+erga omnes
+opinio juris
+terra nullius
+corpus delicti
+nulla poena sine lege
+volenti non fit injuria
+damnum absque injuria
+respondeat superior
+caveat venditor
+contra proferentem
+ejusdem generis
+expressio unius
+noscitur a sociis
+case law
+common law
+civil law
+statutory law
+criminal law
+contract law
+tort law
+property law
+family law
+labor law
+employment law
+corporate law
+company law
+commercial law
+banking law
+tax law
+competition law
+antitrust law
+intellectual property law
+patent law
+copyright law
+trademark law
+constitutional law
+administrative law
+public law
+private law
+international law
+public international law
+private international law
+human rights law
+humanitarian law
+environmental law
+immigration law
+maritime law
+admiralty law
+insurance law
+securities law
+bankruptcy law
+insolvency law
+consumer protection law
+data protection law
+privacy law
+cyber law
+media law
+health law
+medical law
+sports law
+energy law
+EU law
+European Union law
+comparative law
+legal system
+legal order
+rule of law
+separation of powers
+checks and balances
+due process
+due process of law
+equal protection
+equal protection clause
+commerce clause
+supremacy clause
+necessary and proper clause
+establishment clause
+free exercise clause
+free speech
+freedom of speech
+freedom of expression
+freedom of the press
+freedom of assembly
+freedom of religion
+right to privacy
+right to counsel
+right to a fair trial
+right to remain silent
+Miranda rights
+Miranda warning
+presumption of innocence
+burden of proof
+standard of proof
+beyond a reasonable doubt
+preponderance of the evidence
+clear and convincing evidence
+probable cause
+reasonable suspicion
+search and seizure
+search warrant
+arrest warrant
+exclusionary rule
+fruit of the poisonous tree
+double jeopardy
+!self-incrimination
+cruel and unusual punishment
+judicial review
+judicial precedent
+binding precedent
+persuasive precedent
+court of first instance
+court of appeal
+court of appeals
+appellate court
+supreme court
+district court
+circuit court
+federal court
+state court
+trial court
+high court
+crown court
+magistrates court
+small claims court
+family court
+probate court
+bankruptcy court
+juvenile court
+court of justice
+general court
+constitutional court
+administrative court
+arbitral tribunal
+arbitration agreement
+arbitration clause
+arbitral award
+mediation agreement
+alternative dispute resolution
+dispute resolution
+choice of law
+choice of law clause
+forum selection clause
+jurisdiction clause
+governing law
+applicable law
+conflict of laws
+personal jurisdiction
+subject matter jurisdiction
+!venue
+!standing
+cause of action
+statute of limitations
+limitation period
+statute of frauds
+parol evidence rule
+mailbox rule
+mirror image rule
+battle of the forms
+offer and acceptance
+meeting of the minds
+!consideration
+promissory estoppel
+equitable estoppel
+detrimental reliance
+capacity to contract
+contractual capacity
+undue influence
+!misrepresentation
+fraudulent misrepresentation
+negligent misrepresentation
+innocent misrepresentation
+mutual mistake
+unilateral mistake
+!duress
+!unconscionability
+!illegality
+public policy
+privity of contract
+third-party beneficiary
+assignment of rights
+delegation of duties
+!novation
+condition precedent
+condition subsequent
+express term
+implied term
+!warranty
+!condition
+innominate term
+exclusion clause
+exemption clause
+limitation of liability clause
+liquidated damages
+liquidated damages clause
+penalty clause
+indemnity clause
+hold harmless clause
+confidentiality clause
+non-compete clause
+non-solicitation clause
+termination clause
+renewal clause
+severability clause
+entire agreement clause
+boilerplate clause
+breach of contract
+material breach
+minor breach
+anticipatory breach
+anticipatory repudiation
+fundamental breach
+remedy for breach
+expectation damages
+reliance damages
+restitution damages
+consequential damages
+incidental damages
+compensatory damages
+punitive damages
+exemplary damages
+nominal damages
+general damages
+special damages
+mitigation of damages
+duty to mitigate
+specific performance
+injunctive relief
+preliminary injunction
+permanent injunction
+temporary restraining order
+declaratory judgment
+declaratory relief
+equitable remedy
+equitable relief
+!rescission
+!rectification
+!reformation
+unjust enrichment
+quantum meruit
+duty of care
+breach of duty
+standard of care
+reasonable person
+reasonable person standard
+proximate cause
+cause in fact
+but-for test
+contributory negligence
+comparative negligence
+assumption of risk
+strict liability
+vicarious liability
+product liability
+products liability
+manufacturing defect
+design defect
+failure to warn
+occupiers liability
+premises liability
+professional negligence
+medical malpractice
+legal malpractice
+negligent infliction of emotional distress
+intentional infliction of emotional distress
+false imprisonment
+malicious prosecution
+abuse of process
+trespass to land
+trespass to chattels
+!conversion
+private nuisance
+public nuisance
+!defamation
+!libel
+!slander
+actual malice
+invasion of privacy
+eggshell skull rule
+thin skull rule
+res ipsa
+joint and several liability
+real property
+personal property
+fee simple
+fee tail
+life estate
+!leasehold
+!freehold
+joint tenancy
+tenancy in common
+right of survivorship
+adverse possession
+easement by necessity
+easement by prescription
+restrictive covenant
+eminent domain
+just compensation
+regulatory taking
+zoning law
+title deed
+chain of title
+title insurance
+quiet title
+mortgage deed
+deed of trust
+!foreclosure
+power of sale
+security interest
+secured creditor
+unsecured creditor
+priority of claims
+landlord and tenant
+lease agreement
+rental agreement
+security deposit
+eviction notice
+constructive eviction
+warranty of habitability
+last will and testament
+living will
+testamentary capacity
+holographic will
+!codicil
+intestate succession
+probate proceedings
+estate planning
+executor of the estate
+administrator of the estate
+personal representative
+trust fund
+living trust
+testamentary trust
+charitable trust
+constructive trust
+resulting trust
+beneficial owner
+legal owner
+fiduciary duty
+duty of loyalty
+business judgment rule
+piercing the corporate veil
+corporate veil
+limited liability
+unlimited liability
+articles of incorporation
+articles of association
+memorandum of association
+certificate of incorporation
+!bylaws
+board of directors
+shareholder agreement
+shareholders meeting
+annual general meeting
+extraordinary general meeting
+derivative action
+derivative suit
+class action
+class action lawsuit
+mass tort
+proxy vote
+voting rights
+preemptive rights
+tag-along rights
+drag-along rights
+merger agreement
+share purchase agreement
+asset purchase agreement
+due diligence
+representations and warranties
+disclosure letter
+closing conditions
+material adverse change
+!earn-out
+escrow agreement
+non-disclosure agreement
+memorandum of understanding
+letter of intent
+term sheet
+heads of terms
+power of attorney
+durable power of attorney
+general power of attorney
+limited power of attorney
+attorney-client privilege
+legal professional privilege
+work product doctrine
+conflict of interest
+code of conduct
+rules of professional conduct
+bar exam
+bar association
+law firm
+law school
+law review
+legal clinic
+legal aid
+public defender
+district attorney
+attorney general
+solicitor general
+prosecuting attorney
+defense attorney
+defence counsel
+trial lawyer
+in-house counsel
+general counsel
+legal counsel
+legal advisor
+legal opinion
+legal memorandum
+case brief
+moot court
+mock trial
+grand jury
+petit jury
+jury trial
+bench trial
+jury selection
+voir dire
+peremptory challenge
+challenge for cause
+opening statement
+closing argument
+direct examination
+!cross-examination
+redirect examination
+leading question
+expert witness
+lay witness
+hostile witness
+character evidence
+hearsay evidence
+hearsay exception
+best evidence rule
+chain of custody
+physical evidence
+documentary evidence
+circumstantial evidence
+direct evidence
+admissible evidence
+inadmissible evidence
+burden of production
+burden of persuasion
+motion to dismiss
+motion for summary judgment
+summary judgment
+default judgment
+directed verdict
+judgment notwithstanding the verdict
+motion for a new trial
+notice of appeal
+standard of review
+abuse of discretion
+clearly erroneous
+harmless error
+plain error
+reversible error
+!remand
+!affirmed
+!reversed
+!vacated
+dissenting opinion
+concurring opinion
+majority opinion
+plurality opinion
+landmark case
+leading case
+case citation
+legal citation
+law report
+statute book
+code of law
+penal code
+criminal code
+civil code
+commercial code
+uniform commercial code
+code of civil procedure
+code of criminal procedure
+rules of evidence
+federal rules of civil procedure
+federal rules of evidence
+civil procedure
+criminal procedure
+!pleadings
+statement of claim
+statement of defence
+particulars of claim
+!counterclaim
+!cross-claim
+third-party claim
+!joinder
+!interpleader
+!intervention
+service of process
+summons and complaint
+discovery process
+!interrogatories
+request for production
+request for admission
+deposition transcript
+protective order
+gag order
+sealed record
+settlement agreement
+out-of-court settlement
+consent decree
+plea bargain
+plea agreement
+guilty plea
+not guilty plea
+no contest
+arraignment hearing
+preliminary hearing
+bail hearing
+sentencing hearing
+parole hearing
+probation officer
+community service
+suspended sentence
+life sentence
+death penalty
+capital punishment
+mandatory minimum
+sentencing guidelines
+aggravating circumstances
+mitigating circumstances
+first-degree murder
+second-degree murder
+voluntary manslaughter
+involuntary manslaughter
+felony murder
+attempted murder
+aggravated assault
+simple assault
+sexual assault
+armed robbery
+grand larceny
+petty larceny
+white-collar crime
+organized crime
+hate crime
+war crime
+crime against humanity
+!genocide
+money laundering
+insider trading
+securities fraud
+wire fraud
+mail fraud
+tax evasion
+tax avoidance
+identity theft
+!cybercrime
+computer fraud
+drug trafficking
+human trafficking
+obstruction of justice
+contempt of court
+!perjury
+witness tampering
+criminal intent
+general intent
+specific intent
+criminal negligence
+strict liability offence
+inchoate offence
+!attempt
+!conspiracy
+!solicitation
+accessory before the fact
+accessory after the fact
+aiding and abetting
+!self-defence
+!self-defense
+defence of others
+necessity defence
+duress defence
+insanity defence
+diminished responsibility
+entrapment defence
+!alibi
+statute of repose
+extradition treaty
+mutual legal assistance
+international criminal court
+international court of justice
+European court of human rights
+court of justice of the European Union
+treaty interpretation
+Vienna Convention on the Law of Treaties
+customary international law
+general principles of law
+state sovereignty
+state responsibility
+diplomatic immunity
+sovereign immunity
+head of state immunity
+law of the sea
+territorial waters
+exclusive economic zone
+use of force
+right of self-defence
+humanitarian intervention
+responsibility to protect
+refugee status
+asylum seeker
+!non-refoulement
+work permit
+residence permit
+!naturalization
+dual citizenship
+human rights
+civil rights
+civil liberties
+fundamental rights
+Bill of Rights
+Universal Declaration of Human Rights
+European Convention on Human Rights
+Charter of Fundamental Rights
+primacy of EU law
+direct effect
+indirect effect
+state liability
+preliminary reference
+preliminary ruling
+infringement proceedings
+action for annulment
+free movement of goods
+free movement of persons
+freedom of establishment
+freedom to provide services
+free movement of capital
+internal market
+single market
+competition policy
+state aid
+abuse of a dominant position
+dominant position
+anti-competitive agreement
+cartel prohibition
+merger control
+leniency programme
+data controller
+data processor
+data subject
+personal data
+lawful basis
+legitimate interest
+right to erasure
+right to be forgotten
+data portability
+data breach
+privacy policy
+cookie consent
+terms and conditions
+terms of service
+end user license agreement
+license agreement
+licensing agreement
+royalty agreement
+patent infringement
+copyright infringement
+trademark infringement
+trade secret
+trade dress
+fair use
+fair dealing
+public domain
+prior art
+!patentability
+!novelty
+inventive step
+!non-obviousness
+patent application
+patent claim
+patent holder
+patent troll
+licence fee
+moral rights
+neighbouring rights
+collective management
+digital rights management
+employment contract
+employment agreement
+at-will employment
+wrongful termination
+wrongful dismissal
+unfair dismissal
+constructive dismissal
+!redundancy
+severance pay
+notice period
+collective bargaining
+collective agreement
+trade union
+works council
+minimum wage
+overtime pay
+equal pay
+workplace discrimination
+sexual harassment
+hostile work environment
+reasonable accommodation
+whistleblower protection
+workers compensation
+occupational health and safety
+non-compete agreement
+garden leave
+marriage contract
+prenuptial agreement
+postnuptial agreement
+divorce settlement
+child custody
+joint custody
+sole custody
+child support
+spousal support
+!alimony
+visitation rights
+!paternity
+adoption order
+guardianship order
+domestic violence
+restraining order
+protective custody
+age of majority
+age of consent
+legal capacity
+legal personality
+legal entity
+natural person
+juristic person
+legal guardian
+next of kin
+notary public
+sworn statement
+statutory declaration
+affidavit of service
+certified copy
+!apostille
+legal translation
+legislative process
+!bill
+act of parliament
+act of congress
+statutory instrument
+secondary legislation
+delegated legislation
+primary legislation
+!regulation
+!directive
+!decision
+!recommendation
+!ordinance
+!bylaw
+executive order
+presidential decree
+royal assent
+veto power
+legislative intent
+statutory interpretation
+literal rule
+golden rule
+mischief rule
+purposive approach
+!textualism
+!originalism
+living constitution
+legal positivism
+natural law
+legal realism
+critical legal studies
+law and economics
+!jurisprudence
+legal philosophy
+legal theory
+legal history
+legal ethics
+legal reasoning
+legal research
+legal writing
+legal drafting
+contract drafting
+!negotiation
+compliance program
+compliance officer
+anti-money laundering
+know your customer
+!anti-bribery
+!anti-corruption
+sanctions compliance
+export control
+regulatory compliance
+corporate governance
+internal investigation
+audit committee
+whistleblowing hotline
+ESG compliance
+!court
+!fine
+!evidence
+!written
+!legal
+!write
+!judge
+!contract
+!crime
+!agreement
+!murder
+!indeed
+!criminal
+!injury
+!attorney
+!writer
+!illegal
+!appeal
+!lawyer
+!motion
+!sentence
+!constitution
+!legislation
+!battery
+!witness
+!jury
+!immigration
+!discovery
+!penalty
+!assault
+!guarantee
+!mortgage
+!amendment
+!fraud
+!legacy
+!divorce
+!privacy
+!constitutional
+!complaint
+!legislative
+!treaty
+!petition
+!judgment
+!offense
+!copyright
+!warrant
+!regulatory
+!custody
+!legitimate
+!patent
+!adoption
+!compliance
+!testimony
+!counsel
+!legislature
+!liability
+!conviction
+!judicial
+!provision
+!breach
+!damages
+!theft
+!bankruptcy
+!citizenship
+!jurisdiction
+!lawsuit
+!receiver
+!contractor
+!penalties
+!prosecution
+!verdict
+!bail
+!void
+!asylum
+!defendant
+!robbery
+!kidnapped
+!offence
+!bargain
+!sovereign
+!prosecutor
+!litigation
+!sustain
+!stare
+!heir
+!imprisonment
+!landlord
+!liable
+!trademark
+!tribunal
+!regulate
+!judgement
+!judiciary
+!sovereignty
+!remedies
+!statute
+!murderer
+!remedy
+!unprecedented
+!homicide
+!inheritance
+!counselor
+!probation
+!parole
+!precedent
+!tenant
+!felony
+!kidnapping
+!objection
+!statutory
+!deed
+!contempt
+!bankrupt
+!covenant
+!arbitration
+!insanity
+!unlawful
+!indictment
+!solicitor
+!trustee
+!collateral
+!negligence
+!unconstitutional
+!accessory
+!legitimacy
+!lawful
+!regulator
+!courthouse
+!fraudulent
+!infringement
+!marital
+!courtroom
+!convict
+!dissent
+!liabilities
+!reversal
+!plaintiff
+!prosecute
+!inherit
+!zoning
+!deposition
+!bribe
+!nuisance
+!concurrent
+!injunction
+!kidnap
+!summons
+!crimea
+!acquitted
+!aiding
+!burglary
+!abduction
+!contractual
+!illegitimate
+!sanction
+!eviction
+!bribery
+!legalization
+!robber
+!affidavit
+!manslaughter
+!misdemeanor
+!antitrust
+!barrister
+!legality
+!murderous
+!incarceration
+!appellate
+!burglar
+!malice
+!subpoena
+!visitation
+!negligent
+!counsellor
+!forfeit
+!writ
+!extortion
+!extradition
+!coercion
+!legalize
+!accomplice
+!robberies
+!affirm
+!judgmental
+!legislator
+!lien
+!restitution
+!insolvency
+!whistleblower
+!deregulation
+!felon
+!bailout
+!probate
+!testimonies
+!claimant
+!ombudsman
+!rewriting
+!juror
+!custodian
+!notary
+!trespass
+!creditor
+!custodial
+!tort
+!respondent
+!conspiracies
+!debtor
+!heiress
+!lawmaker
+!objectionable
+!tenancy
+!testimonial
+!unregulated
+!fiduciary
+!unwritten
+!acquittal
+!forfeiture
+!garnish
+!hearsay
+!embezzlement
+!enforceable
+!legislate
+!bailiff
+!criminology
+!felonies
+!criminality
+!infringe
+!arbitrator
+!coercive
+!docket
+!codified
+!evict
+!executor
+!liquidated
+!constitutionality
+!indemnity
+!premeditated
+!guardianship
+!matrimony
+!warranties
+!habeas
+!larceny
+!matrimonial
+!culpable
+!retort
+!imprison
+!rescind
+!insolvent
+!petitioner
+!defraud
+!indict
+!bequest
+!entrapment
+!reaffirm
+!abetting
+!extort
+!surety
+!conspire
+!arraignment
+!conspirator
+!conveyance
+!easement
+!guarantor
+!recklessness
+!writhing
+!bankruptcies
+!judgemental
+!jurisdictional
+!kidnapper
+!appellation
+!culpability
+!juris
+!burglaries
+!legitimize
+!paralegal
+!abduct
+!amicus
+!concurred
+!premarital
+!receivership
+!homicidal
+!overrule
+!probationary
+!subcontractor
+!unenforceable
+!jurist
+!prejudicial
+!retrial
+!reconsideration
+!contemptuous
+!courtier
+!expropriation
+!mistrial
+!underwriter
+!immigrate
+!indemnify
+!underwritten
+!prosecutorial
+!concurrency
+!courtenay
+!decriminalization
+!extradite
+!guaranty
+!acquit
+!criminalize
+!incriminate
+!lessee
+!abetted
+!concurrence
+!conspiratorial
+!repudiation
+!contemptible
+!underwrite
+!recuse
+!concurring
+!criminalization
+!warrantless
+!foreclose
+!legalisation
+!prenup
+!fraudster
+!divorcee
+!indemnification
+!slanderous
+!tenancies
+!courtside
+!notarized
+!abductor
+!codification
+!noncompliance
+!repudiate
+!legalise
+!litigate
+!coercing
+!litigious
+!abet
+!incrimination
+!premeditation
+!trespasser
+!rezoning
+!codify
+!injunctive
+!whistleblowing
+!legalistic
+!reconstitution
+!arbitrate
+!lessor
+!libelous
+!unsanctioned
+!litigator
+!constitutionalism
+!indictable
+!extortionate
+!subcontract
+!sustainment
+!prenuptial
+!baily
+!crimewatch
+!decriminalize
+!criminologist
+!legalities
+!writeup
+!estoppel
+!dissenter
+!lawmaking
+!litigant
+!judgeship
+!delegitimize
+!trusteeship
+!courtesies
+!depositional
+!deregulate
+!discriminant
+!felonious
+!garnishment
+!incarcerate
+!misdemeanour
+!bailie
+!collateralized
+!illegitimacy
+!inheritor
+!legalism
+!recrimination
+!misjudge
+!baile
+!intestate
+!tortorella
+!enforceability
+!lawfulness
+!indemnified
+!parolee
+!patentable
+!bailee
+!bailiwick
+!contractile
+!legitimise
+!recusal
+!legalese
+!testator
+!writin
+!counsell
+!expropriate
+!statutorily
+!tortious
+!constitutionalist
+!decriminalisation
+!mortgagee
+!sustainer
+!infineon
+!prejudge
+!courtauld
+!crimestoppers
+!legitimation
+!criminalisation
+!naturalize
+!libellous
+!criminalise
+!embezzle
+!infringer
+!patentee
+!murderess
+!inheritable
+!indemnities
+!misjudgment
+!contractility
+!copyrightable
+!criminological
+!extortionist
+!disinherit
+!codifies
+!conveyancer
+!fiduciaries
+!fineman
+!legitimization
+!misdeed
+!perjure
+!finessing
+!nonjudgmental
+!remortgage
+!unconstitutionality
+!bailable
+!insolvencies
+!unindicted
+!acquitting
+!custodianship
+!juristic
+!voidable
+!regulative
+!writable
+!baila
+!baillargeon
+!courtin
+!probationer
+!abetz
+!jurisprudential
+!arraign
+!bailando
+!bailon
+!mortgagor
+!courte
+!judgey
+!illegalities
+!indeedy
+!assaulter
+!bribie
+!custodes
+!finepix
+!abductee
+!embezzler
+!baillon
+!deregulatory
+!fiducial
+!decriminalise
+!unobjectionable
+!covenantal
+!legalist
+!perjurer
+!robbert
+!courter
+!crimen
+!misjudgement
+!noncustodial
+!tortie
+!judiciaries
+!staredown
+!appealable
+!custodia
+!detestation
+!prosecutable
+!tortora
+!burglarize
+!rewritable
+!matrimonio
+!resentencing
+!subtenant
+!breacher
+!lienz
+!precedential
+!conspiracist
+!covenanter
+!dissention
+!prejudgment
+!relient
+!bailer
+!torticollis
+!abetment
+!guaranties
+!slanderer
+!coercivity
+!executory
+!fraudulence
+!assaultive
+!inmotion
+!unpremeditated
+!abductive
+!crimewave
+!delegitimization
+!libelled
+!precourt
+!warrantee
+!courteeners
+!garnishee

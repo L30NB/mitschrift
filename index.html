@@ -349,6 +349,11 @@ dialog::backdrop { background: rgba(10, 12, 16, .45); backdrop-filter: blur(2px)
       <div><button class="btn" type="button" id="glossApply" data-t="glossApply"></button></div>
     </div>
     <div class="set">
+      <h3><span data-t="packsH"></span><span class="pill" id="packsPill"></span></h3>
+      <p data-t="packsP"></p>
+      <div id="packList" style="display:grid;gap:8px"></div>
+    </div>
+    <div class="set">
       <h3 data-t="uiH"></h3>
       <div class="seg" role="group" aria-label="Interface language">
         <button type="button" data-ui="de" aria-pressed="true">Deutsch</button>
@@ -389,6 +394,8 @@ const T = {
     glossPh: "EZB\nHauptrefinanzierungssatz\nMankiw = mankiev, man kiw",
     terms: n => n === 1 ? "1 Begriff" : `${n} Begriffe`, glossApply: "Auf aktuelle Vorlesung anwenden",
     glossDone: n => n ? `${n} Stellen korrigiert.` : "Nichts zu korrigieren.",
+    packsH: "Fachwörterbücher", termsWord: "Begriffe", packFail: "nur in der Online-Version",
+    packsP: "Eingebaute Fachbegriffe für Recht und Business. Sie korrigieren Groß-/Kleinschreibung, Abkürzungen und getrennt erkannte Wörter (z. B. „kauf vertrag“ → „Kaufvertrag“) und helfen den Schnellnotizen, die wichtigen Begriffe zu finden.",
     learnL: "Aus meinen Korrekturen lernen: Wenn ich ein falsch erkanntes Wort verbessere, merkt sich die App das und korrigiert es künftig automatisch.",
     learned: (a, b, n) => `Gelernt: „${a}“ → „${b}“` + (n ? ` · ${n} weitere Stellen korrigiert` : ""), undo: "Rückgängig", undone: "Rückgängig gemacht.",
     uiH: "Sprache der Oberfläche", privacy: "Vorlesungen bleiben nur in diesem Browser. Mit Whisper verlässt das Audio dein Gerät nicht. Mit der Browser-Erkennung schickt Chrome das Audio an Google.",
@@ -443,6 +450,8 @@ const T = {
     glossPh: "ECB\nMain refinancing rate\nMankiw = mankiev, man kiw",
     terms: n => n === 1 ? "1 term" : `${n} terms`, glossApply: "Apply to current lecture",
     glossDone: n => n ? `Fixed ${n} places.` : "Nothing to fix.",
+    packsH: "Term dictionaries", termsWord: "terms", packFail: "online version only",
+    packsP: "Built-in terms for law and business. They fix capitalization, abbreviations and words recognized in pieces (e.g. “kauf vertrag” → “Kaufvertrag”) and help quick notes find the key terms.",
     learnL: "Learn from my corrections: when I fix a misheard word, the app remembers it and fixes it automatically from then on.",
     learned: (a, b, n) => `Learned: “${a}” → “${b}”` + (n ? ` · fixed ${n} more places` : ""), undo: "Undo", undone: "Undone.",
     uiH: "Interface language", privacy: "Lectures stay in this browser only. With Whisper, the audio never leaves your device. With browser recognition, Chrome sends the audio to Google.",
@@ -536,7 +545,7 @@ function applyUI() {
   $("recBtn").setAttribute("aria-label", want ? t("stop") : t("rec"));
   stateUpdate(); engineUI();
   $("keyP").textContent = t("keyP"); $("costP").textContent = t("costP"); $("glossBox").placeholder = t("glossPh");
-  keyStatus(); buildRules();
+  keyStatus(); buildRules(); renderPacks();
   if (cur) renderAll();
 }
 function renderAll() {
@@ -667,8 +676,9 @@ function quickNotes(lines) {
     if (i > 0 && /^\p{Lu}/u.test(w)) noun.add(w.toLowerCase());
     if (/\p{Lu}/u.test(w)) surface.set(w.toLowerCase(), w);
   }));
-  const weight = w => (tf.get(w) || 0) * Math.log2(2 + w.length) * (gloss.has(w) ? 3 : 1) * (noun.has(w) ? 1.5 : 1);
-  const show = w => gloss.get(w) && words(gloss.get(w)).length === 1 ? gloss.get(w) : w.split(" ").map(x => surface.get(x) || cap(x)).join(" ");
+  const weight = w => (tf.get(w) || 0) * Math.log2(2 + w.length) * (gloss.has(w) ? 3 : 1) * (noun.has(w) ? 1.5 : 1) * (packIndex.key.has(w) ? 2 : 1);
+  const show = w => gloss.get(w) && words(gloss.get(w)).length === 1 ? gloss.get(w)
+    : packIndex.phrases.get(w) || packIndex.key.get(w) || w.split(" ").map(x => surface.get(x) || packIndex.key.get(x) || cap(x)).join(" ");
 
   // Key terms: frequent, longer words, plus two-word phrases that come up repeatedly side by side
   const pairs = new Map();
@@ -679,7 +689,13 @@ function quickNotes(lines) {
       if (a.length > 2 && b.length > 2 && !STOP.has(a) && !STOP.has(b)) pairs.set(a + " " + b, (pairs.get(a + " " + b) || 0) + 1);
     }
   });
-  const phraseList = [...pairs].filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([p]) => p);
+  const known = new Map();
+  sents.forEach(s => {
+    const raw = s.l.text.toLowerCase().replace(/[^\p{L}\p{N}\s&.-]/gu, " ").split(/\s+/).filter(Boolean);
+    for (let k = 2; k <= 4; k++) for (let i = 0; i + k <= raw.length; i++) { const p = raw.slice(i, i + k).join(" "); if (packIndex.phrases.has(p)) known.set(p, (known.get(p) || 0) + 1) }
+  });
+  const phraseList = [...new Set([...[...known].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([p]) => p),
+    ...[...pairs].filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([p]) => p)])].slice(0, 6);
   const inPhrase = new Set(phraseList.flatMap(p => p.split(" ")));
   const single = [...tf.keys()].filter(w => tf.get(w) >= 2 && !inPhrase.has(w)).sort((a, b) => weight(b) - weight(a));
   const terms = [...phraseList, ...single].slice(0, 10).map(show);
@@ -849,7 +865,73 @@ function setGloss(text) { glossText = text; pref.set("mitschrift.glossary", text
 function fixText(s) {
   let n = 0;
   for (const [rx, right] of rules) s = s.replace(rx, m => { if (m !== right) n++; return right });
-  return [s, n];
+  const [p, m] = packFix(s);
+  return [p, n + m];
+}
+
+/* ---------- built-in term dictionaries (files in terms/; "!" marks terms used only to spot key terms) ---------- */
+const PACKS = [
+  { id: "recht-de", file: "terms/recht-de.txt", de: "Recht · Deutsch", en: "Law · German" },
+  { id: "recht-en", file: "terms/recht-en.txt", de: "Recht · Englisch", en: "Law · English" },
+  { id: "business-de", file: "terms/business-de.txt", de: "Business · Deutsch", en: "Business · German" },
+  { id: "business-en", file: "terms/business-en.txt", de: "Business · Englisch", en: "Business · English" }
+];
+const packsOn = () => { try { const v = JSON.parse(pref.get("mitschrift.packs")); if (Array.isArray(v)) return v } catch {} return PACKS.map(p => p.id) };
+const packData = {}; // id -> lines, or null when the file couldn't be loaded
+let packIndex = { fix: new Map(), key: new Map(), phrases: new Map() };
+async function loadPacks() {
+  const on = packsOn();
+  await Promise.all(PACKS.filter(p => on.includes(p.id) && packData[p.id] === undefined).map(async p => {
+    // A page opened as a local file can't read other files; the dictionaries need the online version
+    try { if (location.protocol === "file:") throw 0; const r = await fetch(p.file); if (!r.ok) throw 0; packData[p.id] = (await r.text()).split("\n").filter(Boolean) }
+    catch { packData[p.id] = null }
+  }));
+  const fix = new Map(), key = new Map(), phrases = new Map();
+  packsOn().forEach(id => (packData[id] || []).forEach(line => {
+    const safe = line[0] !== "!", term = safe ? line : line.slice(1), low = term.toLowerCase();
+    // The first dictionary that knows a term decides how it is written
+    if (term.includes(" ")) { if (!phrases.has(low)) phrases.set(low, term) }
+    else { if (!key.has(low)) key.set(low, term); if (safe && !fix.has(low)) fix.set(low, term) }
+  }));
+  packIndex = { fix, key, phrases };
+  renderPacks();
+}
+const coreOf = w => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "");
+function packFix(s) {
+  const { fix } = packIndex; if (!fix.size) return [s, 0];
+  const tok = s.split(" "), out = []; let n = 0;
+  for (let i = 0; i < tok.length; i++) {
+    let joined = false;
+    // Words the recognizer split apart: "kauf vertrag" -> "Kaufvertrag"
+    for (let j = Math.min(3, tok.length - i); j >= 2 && !joined; j--) {
+      const parts = tok.slice(i, i + j), cores = parts.map(coreOf);
+      if (cores.some(c => !/^\p{L}+$/u.test(c))) continue;
+      const hit = fix.get(cores.join("").toLowerCase());
+      if (hit && hit.length >= 9 && /^\p{Lu}/u.test(hit)) {
+        out.push(parts[0].match(/^[^\p{L}\p{N}]*/u)[0] + hit + parts[j - 1].match(/[^\p{L}\p{N}]*$/u)[0]);
+        i += j - 1; n++; joined = true;
+      }
+    }
+    if (joined) continue;
+    // Only words written all in lowercase are touched (a noun's capital letter, an abbreviation)
+    const w = tok[i], c = coreOf(w), hit = c && fix.get(c.toLowerCase());
+    if (hit && c === c.toLowerCase() && hit !== c) { out.push(w.replace(c, hit)); n++ } else out.push(w);
+  }
+  return [out.join(" "), n];
+}
+function renderPacks() {
+  const box = $("packList"); if (!box) return;
+  box.replaceChildren();
+  const on = packsOn(); let total = 0;
+  PACKS.forEach(p => {
+    const lab = el("label", "check"), cb = el("input"); cb.type = "checkbox"; cb.checked = on.includes(p.id);
+    const n = packData[p.id]?.length;
+    if (cb.checked && n) total += n;
+    cb.onchange = () => { const next = packsOn().filter(x => x !== p.id); if (cb.checked) next.push(p.id); pref.set("mitschrift.packs", JSON.stringify(next)); loadPacks() };
+    lab.append(cb, el("span", null, p[ui] + (n ? ` · ${n.toLocaleString(ui)} ${t("termsWord")}` : packData[p.id] === null ? ` · ${t("packFail")}` : "")));
+    box.append(lab);
+  });
+  $("packsPill").textContent = `${total.toLocaleString(ui)} ${t("termsWord")}`;
 }
 function fixLecture(except) {
   let total = 0;
@@ -1536,7 +1618,7 @@ if (sessions.length) { cur = sessions[0]; lang = cur.lang || "de-DE" }
 applyUI();
 if (!cur) newSession();
 setLang(cur.lang || lang);
-renderAll(); animate();
+renderAll(); animate(); loadPacks();
 if (!SR) toast(t("noSR"), true);
 </script>
 </body>
